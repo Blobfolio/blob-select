@@ -12,14 +12,22 @@
 *
 * options:
 *	orderType (string, numeric, null)
+*		(string)
 *		options will be resorted based on their values
+*		default: null (i.e. no sort)
 *	order (ASC, DESC)
+*		(string)
 *		options will be resorted up or down
+*		default: ASC
 *	placeholder
+*		(string)
 *		text to use if an option has no label
+*		default: ---
 *	search
+*		(bool)
 *		a contentEditable field is placed at the top of the menu
 *		to allow users to filter results
+*		default: false
 *
 **/
 (function(){
@@ -235,8 +243,7 @@
 	var defaultSettings = {	"orderType" : "",		//sort options by something?
 							"order" : "ASC",		//sort direction
 							"placeholder" : "---",	//text to use if an <option> has no label
-							"search" : false,		//create an input field to filter results
-							"searchText" : ""		//placeholder text for search field
+							"search" : false		//create an input field to filter results
 						  };
 
 	//the blobSelect object
