@@ -309,6 +309,11 @@
 			//move <select> inside the container
 			container.appendChild(b.element);
 
+			//add a button
+			var button = document.createElement('div');
+				_addClass(button, 'blobselect-button');
+			container.appendChild(button);
+
 			//set up the list of possibilities
 			var list = document.createElement('div');
 				list.setAttribute('class','blobselect-items');
@@ -343,7 +348,7 @@
 						classes.push('has-group');
 
 					//add this to our list-o-options
-					if(option.textContent.trim().length)
+					if(option.textContent.trim().length && option.textContent.trim().toLowerCase() !== b.settings.placeholder.toLowerCase())
 						b.options[option.value] = option.textContent;
 					else
 					{
@@ -383,6 +388,18 @@
 			});
 			_bind(b.element, 'click', function(){
 				b.updateSelections();
+			});
+
+			//close on outside click
+			_bind(document.querySelector('html'), 'click', function(e){
+				if(_hasClass(b.element.parentNode, 'is-open'))
+				{
+					//make sure the target isn't a blobselect
+					if(_hasClass(e.target.parentNode, 'blobselect') || _hasClass(e.target, 'blobselect') || /blobselect/.test(e.target.className))
+						return true;
+					else
+						b.close();
+				}
 			});
 
 			//handle select changes in the reverse!
@@ -607,7 +624,7 @@
 				var s = document.createElement('div');
 					s.setAttribute('class', 'blobselect-selection');
 					s.setAttribute('data-value', selection);
-					if(!selection.trim().length)
+					if(!selection.trim().length || selection.trim().toLowerCase() === b.settings.placeholder.toLowerCase())
 						_addClass(s, 'is-placeholder');
 					s.textContent =  b.options[selection];
 
