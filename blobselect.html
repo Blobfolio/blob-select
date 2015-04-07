@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<link rel='stylesheet' id='css-core-css'  href='css/blobselect.css' type='text/css' media='all' />
+	<script src="js/blobselect.js"></script>
+</head>
+<body>
+
+<select name="foobar" id="foobar" class="foobar" data-blobselect='{"orderType" : "string", "order" : "ASC", "search" : true}'>
+	<optgroup label="Mebar">
+		<option value="apples">Apples</option>
+		<option value="carrots">Carrots</option>
+		<option value="bananas">Bananas</option>
+	</optgroup>
+	<option value="pickles">Pickles</option>
+	<option value="do&quot;g&quot;s">Dogs</option>
+	<option value="cats">Cats</option>
+	<option value="birds">Birds</option>
+	<option value="pears">Pears</option>
+	<option value="zebras">Zebras</option>
+</select>
+
+<select name="youbar" id="youbar" data-blobselect='{"orderType" : "numeric", "order" : "ASC", "placeholder" : "Choose a Number"}'>
+	<option value=""></option>
+	<option value="10">10</option>
+	<option value="8">8</option>
+	<option value="5">$5</option>
+	<option value="30">30</option>
+	<option value="100">100</option>
+	<option value="22">22</option>
+	<option value="1">1</option>
+</select>
+
+<select name="regular">
+	<option value="hi">Hi</option>
+	<option value="there">There</option>
+</select>
+
+<select name="mebar" id="mebar" multiple data-blobselect='{"orderType" : "string", "order" : "ASC"}'>
+	<option value="lv">Las Vegas</option>
+	<option value="chicago" selected>Chicago</option>
+	<option value="nyc" selected>New York</option>
+	<option value="houston">Houston</option>
+	<option value="austin">Austin</option>
+</select>
+
+</body>
+</html>
