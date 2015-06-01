@@ -305,7 +305,9 @@
 				_addClass(container, 'blobselect');
 				if(b.multiple)
 					_addClass(container, 'is-multiple');
-				container.setAttribute('tabIndex', 1);
+				var ti = b.element.tabIndex || 0;
+				container.tabIndex = ti;
+				b.element.tabIndex = -1;
 			b.element.parentNode.insertBefore(container, b.element);
 
 			//.blobselect-selections holds selected value(s)
