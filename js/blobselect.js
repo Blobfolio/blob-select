@@ -1,7 +1,7 @@
 /**
 *
 * blobSelect
-* version: 0.5
+* version: 0.6
 * home: https://blobfolio.com
 *
 * use:
@@ -19,12 +19,14 @@
 *		(string)
 *		options will be resorted up or down
 *		default: ASC
-*	placeholder
-*		(string)
-*		text to use if an option has no label
+*	placeholder (string)
+*		mimics an input's placeholder attribute; this text is displayed when the
+*		selection has no label
 *		default: ---
-*	search
-*		(bool)
+*	placeholderOption (string)
+*		this text is used when an option has no label
+*		default: ---
+*	search (bool)
 *		a contentEditable field is placed at the top of the menu
 *		to allow users to filter results
 *		default: false
@@ -240,10 +242,11 @@
 	//---------------------------------------------------------------------
 
 	//default settings
-	var defaultSettings = {	"orderType" : "",		//sort options by something?
-							"order" : "ASC",		//sort direction
-							"placeholder" : "---",	//text to use if an <option> has no label
-							"search" : false		//create an input field to filter results
+	var defaultSettings = {	"orderType" : "",				//sort options by something?
+							"order" : "ASC",				//sort direction
+							"placeholder" : "---",			//text to use if selection has no label
+							"placeholderOption" : "---",	//text to use if option has no label
+							"search" : false				//create an input field to filter results
 						  };
 
 	//the blobSelect object
@@ -380,7 +383,7 @@
 					item.setAttribute('data-value', option.value);
 					item.textContent = option.textContent;
 					if(!item.textContent.trim().length)
-						item.textContent = b.settings.placeholder;
+						item.textContent = b.settings.placeholderOption;
 				}
 
 				list.appendChild(item);
