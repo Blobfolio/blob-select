@@ -1,7 +1,7 @@
 /**
 *
 * blobSelect
-* version: 0.6
+* version: 0.7
 * home: https://blobfolio.com
 *
 * use:
@@ -251,16 +251,26 @@
 
 	//the blobSelect object
 	var _ = self.blobSelect = function(element){
-		var b = this;
+		var b = this,
+			id = b.getId(element);
+
+		if(blobSelected[id] !== undefined)
+			return blobSelected[id];
+		else
+			blobSelected[id] = this;
 
 		//this should be a select element
 		//and the browser has to support some of the nicer javascript we're using
-		if(typeof element !== 'object' || element.tagName !== 'SELECT' || !_hasSupport())
-			return;
+		if(!(typeof HTMLElement === "object" ? element instanceof HTMLElement : //DOM2
+		element && typeof element === "object" && element !== null && element.nodeType === 1 && typeof element.nodeName==="string")
+		&& element.tagName !== 'SELECT')
+			return false;
 
 		//some set up
 		b.element = element;
-		b.status = parseInt(b.element.getAttribute('data-blobselected')) || 0;
+		b.status = parseInt(b.element.getAttribute('data-blobselected'), 10) || 0;
+		if(isNaN(b.status))
+			b.status = 0;
 		b.settings = _extend(defaultSettings, _parseJSON(b.element.getAttribute('data-blobselect')));
 		//if a person passed a string instead of a bool...
 		if(b.settings.search === 'true')
@@ -272,9 +282,8 @@
 		b.updateLock = false;
 		b.previous = [];
 
-		//don't double-build this
-		if(b.status)
-			return;
+		if(!b.element.getAttribute('data-tabindex'))
+			b.element.setAttribute('data-tabindex', b.element.tabIndex || 0);
 
 		//are we sorting anything?
 		if(b.settings.order && ['ASC','DESC'].indexOf(b.settings.order.toUpperCase()) !== -1 && b.settings.orderType && ['string','numeric'].indexOf(b.settings.orderType.toLowerCase()) !== -1)
@@ -286,6 +295,24 @@
 
 	//extend the blobSelect object a bit...
 	_.prototype = {
+
+		//-------------------------------------------------
+		// get/generate random id for blobselected fields
+		//
+		// @param n/a
+		// @return id
+		getId: function(el){
+			var b = this,
+				id = el.getAttribute('data-blobselect-id') || false;
+
+			if(!id)
+			{
+				id = (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase() + (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase() + (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase() + (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase();
+				el.setAttribute('data-blobselect-id', id);
+			}
+
+			return id;
+		},
 
 		//-------------------------------------------------
 		// (re)build blobSelect
@@ -308,9 +335,8 @@
 				_addClass(container, 'blobselect');
 				if(b.multiple)
 					_addClass(container, 'is-multiple');
-				var ti = b.element.tabIndex || 0;
+				var ti = parseInt(b.element.getAttribute('data-tabindex'), 10) || 0;
 				container.tabIndex = ti;
-				b.element.tabIndex = -1;
 			b.element.parentNode.insertBefore(container, b.element);
 
 			//.blobselect-selections holds selected value(s)
@@ -343,6 +369,7 @@
 			}
 
 			//go through <options> and add them to our list
+			b.options = {};
 			_forEach($$('optgroup, option', b.element), function(option){
 
 				var classes = [];
@@ -553,6 +580,21 @@
 			container.parentNode.insertBefore(b.element, container);
 			_removeElement($$('.blobselect', container.parentNode));
 			b.element.setAttribute('data-blobselected', 0);
+		},
+
+		//-------------------------------------------------
+		// erase the instance from the face of the earth
+		//
+		// @param n/a
+		// @retrn true
+		uncreate: function(){
+			var b = this,
+				id = b.getId();
+			b.destroy();
+			b.removeAttribute('data-blobselected');
+			b.removeAttribute('data-blobselect-id');
+			delete blobSelected[id];
+			return true;
 		},
 
 		//-------------------------------------------------
@@ -802,3 +844,36 @@
 	} catch(e){ }
 
 })();
+
+//store initiated blobSelect() objects
+var blobSelected = {};
+
+//-------------------------------------------------
+// Get blobSelect() object by element
+//
+// @param element
+// @param create (create if not found)
+// @return object or false
+function getBlobSelectByElement(element, create=true){
+	//if it is an array, loop through each element
+	//and return last response
+	if(Array.isArray(element))
+	{
+		for(var key = 0, len = element.length; key < len; key++)
+			return getBlobSelectByElement(element[key]);
+	}
+
+	//if we have a proper element, move forward!
+	if((typeof HTMLElement === "object" ? element instanceof HTMLElement : //DOM2
+		element && typeof element === "object" && element !== null && element.nodeType === 1 && typeof element.nodeName==="string")
+		&& element.tagName === 'SELECT')
+	{
+		var id = element.getAttribute('data-blobselect-id') || false;
+		if(id && blobSelected.hasOwnProperty(id))
+			return blobSelected[id];
+		else if(create)
+			return new blobSelect(element);
+	}
+
+	return false;
+}
