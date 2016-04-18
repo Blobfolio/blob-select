@@ -854,7 +854,12 @@ var blobSelected = {};
 // @param element
 // @param create (create if not found)
 // @return object or false
-function getBlobSelectByElement(element, create=true){
+function getBlobSelectByElement(element, create){
+
+	if(create === undefined){
+		create = true;
+	}
+
 	//if it is an array, loop through each element
 	//and return last response
 	if(Array.isArray(element))
