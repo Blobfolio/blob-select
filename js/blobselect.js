@@ -484,12 +484,14 @@
 				else
 					b.close();
 			});
-			_bind(container, 'keyup', function(e){
+
+			_bind(container, 'keypress', function(e){
 				var key = e.keyCode;
 
-				//open a menu if enter or space is pressed
-				if(!_hasClass(this, 'is-open') && (key === 13 || key === 32))
+				//open a menu if just about anything is pressed
+				if(!_hasClass(this, 'is-open') && key !== 9){
 					return b.open();
+				}
 				//close a menu if esc is pressed
 				else if(_hasClass(this, 'is-open') && key === 27)
 					return b.close();
@@ -498,7 +500,7 @@
 			if(b.settings.search)
 			{
 				//our search field
-				_bind(searchField, 'keyup', function(e){
+				_bind(searchField, 'keypress', function(e){
 					e.stopPropagation();
 					var key = e.keyCode,
 						textTest = _sanitizeRegexp(searchField.textContent.trim()),
