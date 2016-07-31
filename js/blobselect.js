@@ -168,75 +168,6 @@
 		element.addEventListener(event, callback, false);
 	}
 
-	//-------------------------------------------------
-	// classes as array
-	//
-	// @param element
-	// @return classes
-	function _getClasses(element){
-		var classString = element.getAttribute('class');
-		if(classString === null)
-			classString = '';
-		classString = classString.replace('/\s{1,}/g', ' ').trim();
-
-		if(classString.indexOf(' ') !== -1)
-			return classString.split(' ');
-		else if(classString.length)
-		{
-			var arr = [];
-			arr.push(classString);
-			return arr;
-		}
-		else
-			return [];
-	}
-
-	//-------------------------------------------------
-	// jQuery-like .hasClass()
-	//
-	// @param element
-	// @param class
-	// @return true/false
-	function _hasClass(element, c){
-		var classes = _getClasses(element);
-		return classes.indexOf(c) !== -1;
-	}
-
-	//-------------------------------------------------
-	// jQuery-like .addClass()
-	//
-	// @param element
-	// @param class
-	// @return true
-	function _addClass(element, c){
-		if(!_hasClass(element, c))
-		{
-			var classes = _getClasses(element);
-			classes.push(c);
-			element.setAttribute('class', classes.join(' '));
-		}
-
-		return true;
-	}
-
-	//-------------------------------------------------
-	// jQuery-like .removeClass()
-	//
-	// @param element
-	// @param class
-	// @return true
-	function _removeClass(element, c){
-		var classes = _getClasses(element),
-			index = classes.indexOf(c);
-
-		if(index !== -1)
-		{
-			classes.splice(index, 1);
-			element.setAttribute('class', classes.join(' '));
-		}
-		return true;
-	}
-
 	//---------------------------------------------------------------------
 	// blobSelect
 	//---------------------------------------------------------------------
@@ -332,9 +263,9 @@
 
 			//.blobselect wraps around the <select>
 			var container = document.createElement('div');
-				_addClass(container, 'blobselect');
+				container.classList.add('blobselect');
 				if(b.multiple)
-					_addClass(container, 'is-multiple');
+					container.classList.add('is-multiple');
 				var ti = parseInt(b.element.getAttribute('data-tabindex'), 10) || 0;
 				container.tabIndex = ti;
 			b.element.parentNode.insertBefore(container, b.element);
@@ -349,7 +280,7 @@
 
 			//add a button
 			var button = document.createElement('div');
-				_addClass(button, 'blobselect-button');
+				button.classList.add('blobselect-button');
 			container.appendChild(button);
 
 			//set up the list of possibilities
@@ -362,7 +293,7 @@
 				//add a special entry containing a text input
 				//which we'll use for type-searching
 				var searchField = document.createElement('div');
-					_addClass(searchField, 'blobselect-item-search');
+					searchField.classList.add('blobselect-item-search');
 					searchField.setAttribute('type', 'text');
 					searchField.setAttribute('contentEditable','true');
 				list.appendChild(searchField);
@@ -431,10 +362,10 @@
 
 			//close on outside click
 			_bind(document.querySelector('html'), 'click', function(e){
-				if(_hasClass(b.element.parentNode, 'is-open'))
+				if(b.element.parentNode.classList.contains('is-open'))
 				{
 					//make sure the target isn't a blobselect
-					if(_hasClass(e.target.parentNode, 'blobselect') || _hasClass(e.target, 'blobselect') || /blobselect/.test(e.target.className))
+					if(e.target.parentNode.classList.contains('blobselect') || e.target.classList.contains('blobselect') || /blobselect/.test(e.target.className))
 						return true;
 					else
 						b.close();
@@ -478,7 +409,7 @@
 				e.preventDefault();
 
 				//we are opening
-				if(!_hasClass(this, 'is-open'))
+				if(!this.classList.contains('is-open'))
 					b.open();
 				//we are closing
 				else
@@ -489,11 +420,11 @@
 				var key = e.keyCode;
 
 				//open a menu if just about anything is pressed
-				if(!_hasClass(this, 'is-open') && key !== 9){
+				if(!this.classList.contains('is-open') && key !== 9){
 					return b.open();
 				}
 				//close a menu if esc is pressed
-				else if(_hasClass(this, 'is-open') && key === 27)
+				else if(this.classList.contains('is-open') && key === 27)
 					return b.close();
 			});
 
@@ -511,22 +442,22 @@
 					_forEach(options, function(option){
 						var textOption = option.textContent.trim(),
 							matchNew = !textTest.length || RegExp(textTest, "i").test(textOption),
-							matchOld = !_hasClass(option, 'is-not-match');
+							matchOld = !option.classList.contains('is-not-match');
 
 						//get rid of old matches
 						option.textContent = textOption;
 
 						//update no-match status
 						if(matchNew && !matchOld)
-							_removeClass(option, 'is-not-match');
+							option.classList.remove('is-not-match');
 						else if(!matchNew && matchOld)
-							_addClass(option, 'is-not-match');
+							option.classList.add('is-not-match');
 
 						//update yes-match status
-						if(_hasClass(option, 'is-not-match') && _hasClass(option, 'is-match'))
-							_removeClass(option, 'is-match');
-						else if(!_hasClass(option, 'is-not-match') && !_hasClass(option, 'is-match'))
-							_addClass(option, 'is-match');
+						if(option.classList.contains('is-not-match') && option.classList.contains('is-match'))
+							option.classList.remove('is-match');
+						else if(!option.classList.contains('is-not-match') && !option.classList.contains('is-match'))
+							option.classList.add('is-match');
 
 						if(matchNew)
 							option.innerHTML = textOption.replace(RegExp(textTest, "gi"), "<mark>$&</mark>");
@@ -539,7 +470,7 @@
 					if(!matches)
 					{
 						_forEach($$('.is-not-match', searchField.parentNode.parentNode), function(option){
-							_removeClass(option, 'is-not-match');
+							option.classList.remove('is-not-match');
 						});
 					}
 
@@ -609,17 +540,17 @@
 				container = this.element.parentNode;	//the container element
 
 			//if this is already open, ignore
-			if(_hasClass(container, 'is-opening') || _hasClass(container, 'is-open'))
+			if(container.classList.contains('is-opening') || container.classList.contains('is-open'))
 				return true;
 
 			_forEach($$('.blobselect.is-open'), function(select){
-				_removeClass(select, 'is-open');
+				select.classList.remove('is-open');
 			});
 
-			_addClass(container, 'is-opening');
+			container.classList.add('is-opening');
 			setTimeout(function(){
-				_addClass(container, 'is-open');
-				_removeClass(container, 'is-opening');
+				container.classList.add('is-open');
+				container.classList.remove('is-opening');
 
 				if(b.settings.search === true)
 				{
@@ -639,7 +570,7 @@
 		// @return n/a
 		close: function(container){
 			var container = this.element.parentNode;
-			_removeClass(container, 'is-open');
+			container.classList.remove('is-open');
 			container.focus();
 		},
 
@@ -660,7 +591,7 @@
 			b.updateLock = true;
 
 			//make sure this is blobselected
-			if(!_hasClass(b.element.parentNode, 'blobselect'))
+			if(!b.element.parentNode.classList.contains('blobselect'))
 				return;
 
 			//reset selections
@@ -681,7 +612,7 @@
 					s.setAttribute('class', 'blobselect-selection');
 					s.setAttribute('data-value', selection);
 					if(!selection.trim().length || selection.trim().toLowerCase() === b.settings.placeholder.toLowerCase())
-						_addClass(s, 'is-placeholder');
+						s.classList.add('is-placeholder');
 					s.textContent =  b.options[selection];
 
 				//for multi-selects, clicking a selection de-selects it
@@ -699,11 +630,11 @@
 			//also update our pseudo-menus
 			_forEach($$('.blobselect-item', b.element.parentNode), function(element){
 				var selected_now = b.selections.indexOf(element.getAttribute('data-value')) !== -1,
-					selected_then = _hasClass(element, 'is-active');
+					selected_then = element.classList.contains('is-active');
 				if(selected_now && !selected_then)
-					_addClass(element, 'is-active');
+					element.classList.add('is-active');
 				else if(!selected_now && selected_then)
-					_removeClass(element, 'is-active');
+					element.classList.remove('is-active');
 			});
 
 			//manually fire "change" event if the values have, well, changed
