@@ -1,14 +1,14 @@
 /**
 *
 * blobSelect
-* version: 0.7
+* version: 1.0
 * home: https://blobfolio.com
 *
 * use:
 *	<select data-blobselect="{OPTIONS}">
 *	select fields with the data-blobselect attribute are auto-initialized on load
 *	select fields can be manually initialized with:
-*		new blobSelect(getElementById('the-field'))
+*		document.getElementById('myselect').blobSelect.init()
 *
 * options:
 *	orderType (string, numeric, null)
@@ -30,6 +30,15 @@
 *		a contentEditable field is placed at the top of the menu
 *		to allow users to filter results
 *		default: false
+*	watch (int)
+*		have each blobSelect instance watch itself for unannounced changes
+*		(that is, no proper event was fired) every WATCH milliseconds
+*		this can negatively impact performance and shouldn't be necessary,
+*		but if lots of libraries are working independently, it can help
+*		default: false
+*	debug (bool)
+*		dump lots of event info to the console log
+*		default: false
 *
 **/
 (function(){
@@ -37,6 +46,97 @@
 	//---------------------------------------------------------------------
 	// Helpers
 	//---------------------------------------------------------------------
+
+	//make sure the browser supports what is needed
+	if(
+		!('classList' in document.documentElement) ||
+		!('createRange' in document) ||
+		!('querySelector' in document && 'querySelectorAll' in document) ||
+		!('JSON' in window && 'parse' in JSON && 'stringify' in JSON)
+	) {
+		console.warn('blobSelect[' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '] aborted; browser missing feature support');
+		return;
+	}
+
+	//also, a neat polyfill for .matches()
+	if(!Element.prototype.matches){
+		Element.prototype.matches =
+			Element.prototype.matchesSelector ||
+			Element.prototype.mozMatchesSelector ||
+			Element.prototype.msMatchesSelector ||
+			Element.prototype.oMatchesSelector ||
+			Element.prototype.webkitMatchesSelector ||
+			function(s) {
+				var matches = (this.document || this.ownerDocument).querySelectorAll(s),
+					i = matches.length;
+				while (--i >= 0 && matches.item(i) !== this) {}
+				return i > -1;
+			};
+	}
+
+	//-------------------------------------------------
+	//JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
+	//
+	// @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
+	// @see http://github.com/garycourt/murmurhash-js
+	// @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
+	// @see http://sites.google.com/site/murmurhash/
+	//
+	// @param {string} key ASCII only
+	// @param {number} seed Positive integer only
+	// @return {number} 32-bit positive integer hash
+
+	function _hash(key, seed) {
+		var remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
+
+		remainder = key.length & 3; // key.length % 4
+		bytes = key.length - remainder;
+		h1 = seed;
+		c1 = 0xcc9e2d51;
+		c2 = 0x1b873593;
+		i = 0;
+
+		while (i < bytes) {
+			k1 =
+			  ((key.charCodeAt(i) & 0xff)) |
+			  ((key.charCodeAt(++i) & 0xff) << 8) |
+			  ((key.charCodeAt(++i) & 0xff) << 16) |
+			  ((key.charCodeAt(++i) & 0xff) << 24);
+			++i;
+
+			k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
+			k1 = (k1 << 15) | (k1 >>> 17);
+			k1 = ((((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16))) & 0xffffffff;
+
+			h1 ^= k1;
+			h1 = (h1 << 13) | (h1 >>> 19);
+			h1b = ((((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16))) & 0xffffffff;
+			h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
+		}
+
+		k1 = 0;
+
+		switch (remainder) {
+			case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
+			case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+			case 1: k1 ^= (key.charCodeAt(i) & 0xff);
+
+			k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
+			k1 = (k1 << 15) | (k1 >>> 17);
+			k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
+			h1 ^= k1;
+		}
+
+		h1 ^= key.length;
+
+		h1 ^= h1 >>> 16;
+		h1 = (((h1 & 0xffff) * 0x85ebca6b) + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
+		h1 ^= h1 >>> 13;
+		h1 = ((((h1 & 0xffff) * 0xc2b2ae35) + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16))) & 0xffffffff;
+		h1 ^= h1 >>> 16;
+
+		return h1 >>> 0;
+	}
 
 	//-------------------------------------------------
 	// jQuery-like nice selector
@@ -46,37 +146,15 @@
 	// @param expression
 	// @param container
 	// @return results
-	function $(expr, con){
+	var $ = function(expr, con){
 		if (!expr) return null;
 		return typeof expr === 'string'? (con || document).querySelector(expr) : expr;
-	}
+	};
+
 	//and for arrays
-	function $$(expr, con){
+	var $$ = function(expr, con){
 		return Array.prototype.slice.call((con || document).querySelectorAll(expr));
-	}
-
-	//-------------------------------------------------
-	// Whether various JS properties we're using are
-	// supported
-	//
-	// on failure, the <select> will be left alone
-	//
-	// @param n/a
-	// @return true/false
-	function _hasSupport(){
-		try {
-			//we need querySelector support
-			document.querySelectorAll('select');
-
-			//and JSON support
-			if(typeof JSON !== 'object' || typeof JSON.parse !== 'function')
-				return false;
-
-			return true;
-		} catch(e){
-			return false;
-		}
-	}
+	};
 
 	//-------------------------------------------------
 	// jQuery-like .extend()
@@ -84,16 +162,39 @@
 	// @param defaults
 	// @param overrides
 	// @return extended
-	function _extend(defaults, overrides){
+	var _extend = function(defaults, overrides){
 		var extended = {};
-		_forEach(defaults, function (value, key) {
+		_forEach(defaults, function (value, key){
 			extended[key] = defaults[key];
 		});
-		_forEach(overrides, function (value, key) {
+		_forEach(overrides, function (value, key){
 			extended[key] = overrides[key];
 		});
 		return extended;
-	}
+	};
+
+	//-------------------------------------------------
+	// jQuery-like .closest()
+	//
+	// @param el
+	// @param selector
+	// @return self or closest matching parent
+	var _closest = function (el, selector){
+		try {
+			//try self
+			if(el.matches(selector))
+				return el;
+
+			//up the chain
+			while(el.parentNode && 'matches' in el.parentNode){
+				el = el.parentNode;
+				if(el.matches(selector))
+					return el;
+			}
+		} catch(Ex){}
+
+		return null;
+	};
 
 	//-------------------------------------------------
 	// forEach() wrapper that can loop through
@@ -102,21 +203,18 @@
 	// @param collection
 	// @param callback (value, key, collection)
 	// @return n/a
-	function _forEach(collection, callback){
-		if(Object.prototype.toString.call(collection) === '[object Object]')
-		{
-			for (var key in collection)
-			{
+	var _forEach = function(collection, callback){
+		if(Object.prototype.toString.call(collection) === '[object Object]'){
+			for (var key in collection){
 				if (Object.prototype.hasOwnProperty.call(collection, key))
 					callback(collection[key], key, collection);
 			}
 		}
-		else
-		{
+		else {
 			for (var key = 0, len = collection.length; key < len; key++)
 				callback(collection[key], key, collection);
 		}
-	}
+	};
 
 	//-------------------------------------------------
 	// Sanitize regexp characters
@@ -125,7 +223,18 @@
 	//
 	// @param str
 	// @return str
-	function _sanitizeRegexp(s) { return s.replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&"); }
+	var _sanitizeRegexp = function(s){ return s.replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&"); };
+
+	//-------------------------------------------------
+	// Sanitize Whitespace
+	//
+	// @param str
+	// @param trim
+	// @return str
+	var _sanitizeWhitespace = function(str, trim){
+		str = str.replace(/\s{1,}/mg, ' ');
+		return str.trim();
+	}
 
 	//-------------------------------------------------
 	// JSON.parse() wrapper that won't explode if
@@ -133,26 +242,77 @@
 	//
 	// @param string
 	// @return JSON or {}
-	function _parseJSON(str){
+	var _parseJSON = function(str){
+		if(_isObject(str))
+			return str;
+
 		try {
 			var j = JSON.parse(str);
 			return j;
 		}
-		catch (e) {
+		catch (e){
 			return {};
 		}
+	};
+
+	//-------------------------------------------------
+	// move the cursor to the end of a contenteditable
+	// field
+	//
+	// @param el
+	// @return n/a
+	var _cursorToEnd = function(el){
+		//move the cursor to the end
+		var searchRange,
+			searchSelection;
+
+		searchRange = document.createRange();
+		searchRange.selectNodeContents(el);
+		searchRange.collapse(false);
+		searchSelection = window.getSelection();
+		searchSelection.removeAllRanges();
+		searchSelection.addRange(searchRange);
+		return;
 	}
+
+	//-------------------------------------------------
+	// printable key codes
+	//
+	// @param keyCode
+	// @return true/false
+	var _isPrintable = function(key){
+
+		return (
+		(key > 47 && key < 58)   ||	// number keys   || // spacebar & return key(s) (if you want to allow carriage returns)
+		(key > 64 && key < 91)   ||	// letter keys
+		(key > 95 && key < 112)  ||	// numpad keys
+		(key > 185 && key < 193) ||	// ;=,-./` (in order)
+		(key > 218 && key < 223));	// [\]' (in order)
+	};
 
 	//-------------------------------------------------
 	// jQuery-like .remove()
 	//
 	// @param element(s)
 	// @return n/a
-	function _removeElement(elements){
+	var _removeElement = function(elements){
+		if(!Array.isArray(elements) && elements instanceof HTMLElement)
+			elements = [elements];
+
 		_forEach(elements, function(element){
+			//clean up listeners
+			if(element in _bound){
+				_forEach(_bound[element], function(event, callbacks){
+					_forEach(callbacks, function(callback){
+						element.removeEventListener(event, callback, false);
+					});
+				});
+				delete _bound[element];
+			}
+
 			element.parentNode.removeChild(element);
 		});
-	}
+	};
 
 	//-------------------------------------------------
 	// bind wrapper
@@ -161,657 +321,876 @@
 	// @param event
 	// @param callback
 	// @return true/false
-	function _bind(element, event, callback) {
+	var _bound = {};
+	var _bind = function(element, event, callback){
 		if(!element || typeof callback !== 'function' || !event)
 			return false;
 
+		if(!(element in _bound))
+			_bound[element] = {};
+
+		if(!(event in _bound[element]))
+			_bound[element][event] = [];
+
+		_bound[element][event].push(callback);
+
 		element.addEventListener(event, callback, false);
-	}
+	};
+
+	//-------------------------------------------------
+	// is object
+	//
+	// @param var
+	// @return true/false
+	var _isObject = function(variable){
+		return (variable !== null && typeof variable === 'object' && !Array.isArray(variable));
+	};
+
+	//-------------------------------------------------
+	// Default Settings
+
+	var defaultSettings = {
+		"orderType" : "",				//sort options by something?
+		"order" : "ASC",				//sort direction
+		"placeholder" : "---",			//text to use if selection has no label
+		"placeholderOption" : "---",	//text to use if option has no label
+		"search" : false,				//create an input field to filter results
+		"watch" : 0
+	};
+
 
 	//---------------------------------------------------------------------
-	// blobSelect
+	// Plugin
 	//---------------------------------------------------------------------
 
-	//default settings
-	var defaultSettings = {	"orderType" : "",				//sort options by something?
-							"order" : "ASC",				//sort direction
-							"placeholder" : "---",			//text to use if selection has no label
-							"placeholderOption" : "---",	//text to use if option has no label
-							"search" : false				//create an input field to filter results
-						  };
+	//-------------------------------------------------
+	// Constructor
 
-	//the blobSelect object
-	var _ = self.blobSelect = function(element){
-		var b = this,
-			id = b.getId(element);
+	var blobSelect = function(element){
+		this.element = element;
+	};
 
-		if(blobSelected[id] !== undefined)
-			return blobSelected[id];
-		else
-			blobSelected[id] = this;
+	//-------------------------------------------------
+	// The Guts
 
-		//this should be a select element
-		//and the browser has to support some of the nicer javascript we're using
-		if(!(typeof HTMLElement === "object" ? element instanceof HTMLElement : //DOM2
-		element && typeof element === "object" && element !== null && element.nodeType === 1 && typeof element.nodeName==="string")
-		&& element.tagName !== 'SELECT')
-			return false;
+	blobSelect.prototype = {
+		_ : this,
+		container : null,		//.blobselect
+		selections : null,		//.blobselect-selections
+		button : null,			//.blobselect-button
+		items : null,			//.blobselect-items
+		search : null,			//.blobselect-item-search
+		searchValue : null,		//the last search value
+		hash : null,			//a hash of option properties we care about
+		settings : {},			//plugin settings
+		watch : null,			//setInterval
+		debounceQueue : {},		//debounced functions
+		updateLock : false,		//don't respond to our own updates
 
-		//some set up
-		b.element = element;
-		b.status = parseInt(b.element.getAttribute('data-blobselected'), 10) || 0;
-		if(isNaN(b.status))
-			b.status = 0;
-		b.settings = _extend(defaultSettings, _parseJSON(b.element.getAttribute('data-blobselect')));
-		//if a person passed a string instead of a bool...
-		if(b.settings.search === 'true')
-			b.settings.search = true;
-		b.options = {};
-		b.selections = [];
-		b.multiple = (b.element.getAttribute('multiple') === null) ? false : true;
-		b.events = [];
-		b.updateLock = false;
-		b.previous = [];
 
-		if(!b.element.getAttribute('data-tabindex'))
-			b.element.setAttribute('data-tabindex', b.element.tabIndex || 0);
-
-		//are we sorting anything?
-		if(b.settings.order && ['ASC','DESC'].indexOf(b.settings.order.toUpperCase()) !== -1 && b.settings.orderType && ['string','numeric'].indexOf(b.settings.orderType.toLowerCase()) !== -1)
-			b.sortOptions();
-
-		//do we need to build it?
-		b.build();
-	}
-
-	//extend the blobSelect object a bit...
-	_.prototype = {
 
 		//-------------------------------------------------
-		// get/generate random id for blobselected fields
+		// Debug
 		//
-		// @param n/a
-		// @return id
-		getId: function(el){
-			var b = this,
-				id = el.getAttribute('data-blobselect-id') || false;
-
-			if(!id)
-			{
-				id = (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase() + (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase() + (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase() + (((1 + Math.random()) * 0x10000)|0).toString(16).substring(1).toUpperCase();
-				el.setAttribute('data-blobselect-id', id);
-			}
-
-			return id;
-		},
-
-		//-------------------------------------------------
-		// (re)build blobSelect
-		//
-		// if called on already built blobSelect, it will
-		// trigger destroy(), then build it again
-		//
-		// @param n/a
+		// @param log
 		// @return n/a
-		build: function(){
+		debug : function(msg){
+			if(!this.settings.debug)
+				return false;
 
-			var b = this;
-
-			//if rebuilding, destroy it first
-			if(b.status)
-				b.destroy();
-
-			//.blobselect wraps around the <select>
-			var container = document.createElement('div');
-				container.classList.add('blobselect');
-				if(b.multiple)
-					container.classList.add('is-multiple');
-				var ti = parseInt(b.element.getAttribute('data-tabindex'), 10) || 0;
-				container.tabIndex = ti;
-			b.element.parentNode.insertBefore(container, b.element);
-
-			//.blobselect-selections holds selected value(s)
-			var selections = document.createElement('div');
-				selections.setAttribute('class', 'blobselect-selections');
-			container.appendChild(selections);
-
-			//move <select> inside the container
-			container.appendChild(b.element);
-
-			//add a button
-			var button = document.createElement('div');
-				button.classList.add('blobselect-button');
-			container.appendChild(button);
-
-			//set up the list of possibilities
-			var list = document.createElement('div');
-				list.setAttribute('class','blobselect-items');
-			container.appendChild(list);
-
-			if(b.settings.search === true)
-			{
-				//add a special entry containing a text input
-				//which we'll use for type-searching
-				var searchField = document.createElement('div');
-					searchField.classList.add('blobselect-item-search');
-					searchField.setAttribute('type', 'text');
-					searchField.setAttribute('contentEditable','true');
-				list.appendChild(searchField);
-			}
-
-			//go through <options> and add them to our list
-			b.options = {};
-			_forEach($$('optgroup, option', b.element), function(option){
-
-				var classes = [];
-
-				//<optgroup> will be represented as a non-selectable list item
-				if(option.tagName === 'OPTGROUP')
-					classes.push('blobselect-item-group');
-				//<option> is a regular list item
-				else
-				{
-					classes.push('blobselect-item');
-					if(option.selected)
-						classes.push('is-active');
-					if(option.parentNode.tagName === 'OPTGROUP')
-						classes.push('has-group');
-
-					//add this to our list-o-options
-					if(option.textContent.trim().length && option.textContent.trim().toLowerCase() !== b.settings.placeholder.toLowerCase())
-						b.options[option.value] = option.textContent;
-					else
-					{
-						b.options[option.value] = b.settings.placeholder;
-						classes.push('is-placeholder');
-					}
-				}
-
-				//start the item
-				var item = document.createElement('div');
-					item.setAttribute('class', classes.join(' '));
-
-				//optgroup uses "label"
-				if(option.tagName === 'OPTGROUP')
-					item.textContent = option.label;
-				//options use textContent
-				else
-				{
-					item.setAttribute('tabIndex', 1);
-					item.setAttribute('data-value', option.value);
-					item.textContent = option.textContent;
-					if(!item.textContent.trim().length)
-						item.textContent = b.settings.placeholderOption;
-				}
-
-				list.appendChild(item);
-			});
-
-			//update selection(s)
-			b.updateSelections();
-
-			//that's the HTML out of the way, now let's BIND stuff!
-
-			//first, handle select changes
-			_bind(b.element, 'change', function(){
-				b.updateSelections();
-			});
-			_bind(b.element, 'click', function(){
-				b.updateSelections();
-			});
-
-			//close on outside click
-			_bind(document.querySelector('html'), 'click', function(e){
-				if(b.element.parentNode.classList.contains('is-open'))
-				{
-					//make sure the target isn't a blobselect
-					if(e.target.parentNode.classList.contains('blobselect') || e.target.classList.contains('blobselect') || /blobselect/.test(e.target.className))
-						return true;
-					else
-						b.close();
-				}
-			});
-
-			//handle select changes in the reverse!
-			_forEach($$('.blobselect-item', b.element.parentNode), function(option){
-				//on click
-				_bind(option, 'click', function(e){
-					e.stopPropagation();
-					var value = option.getAttribute('data-value');
-
-					//already selected?
-					if(b.selections.indexOf(value) !== -1)
-					{
-						//deselect if multiselect
-						if(b.multiple)
-							b.removeSelection(value);
-					}
-					//select it
-					else
-						b.addSelection(value);
-
-					//close menu
-					b.close();
-				});
-				//on space or enter
-				_bind(option, 'keyup', function(e){
-					e.stopPropagation();
-					var key = e.keyCode;
-
-					//treat space and enter as clicks
-					if(key === 13 || key === 32)
-						return option.click();
-				});
-			});
-
-			//toggle the open/closed state
-			_bind(container, 'click', function(e){
-				e.preventDefault();
-
-				//we are opening
-				if(!this.classList.contains('is-open'))
-					b.open();
-				//we are closing
-				else
-					b.close();
-			});
-
-			_bind(container, 'keypress', function(e){
-				var key = e.keyCode;
-
-				//open a menu if just about anything is pressed
-				if(!this.classList.contains('is-open') && key !== 9){
-					return b.open();
-				}
-				//close a menu if esc is pressed
-				else if(this.classList.contains('is-open') && key === 27)
-					return b.close();
-			});
-
-			if(b.settings.search)
-			{
-				//our search field
-				_bind(searchField, 'keypress', function(e){
-					e.stopPropagation();
-					var key = e.keyCode,
-						textTest = _sanitizeRegexp(searchField.textContent.trim()),
-						options = $$('.blobselect-item', searchField.parentNode.parentNode),
-						matches = 0;
-
-					//look for matches
-					_forEach(options, function(option){
-						var textOption = option.textContent.trim(),
-							matchNew = !textTest.length || RegExp(textTest, "i").test(textOption),
-							matchOld = !option.classList.contains('is-not-match');
-
-						//get rid of old matches
-						option.textContent = textOption;
-
-						//update no-match status
-						if(matchNew && !matchOld)
-							option.classList.remove('is-not-match');
-						else if(!matchNew && matchOld)
-							option.classList.add('is-not-match');
-
-						//update yes-match status
-						if(option.classList.contains('is-not-match') && option.classList.contains('is-match'))
-							option.classList.remove('is-match');
-						else if(!option.classList.contains('is-not-match') && !option.classList.contains('is-match'))
-							option.classList.add('is-match');
-
-						if(matchNew)
-							option.innerHTML = textOption.replace(RegExp(textTest, "gi"), "<mark>$&</mark>");
-
-						if(matchNew)
-							matches++;
-					});
-
-					//no matches? treat it like they aren't searching for anything
-					if(!matches)
-					{
-						_forEach($$('.is-not-match', searchField.parentNode.parentNode), function(option){
-							option.classList.remove('is-not-match');
-						});
-					}
-
-					//if someone hits enter, treat it like we're clicking the first match
-					if(key === 13)
-					{
-						var first = $('.blobselect-item.is-match', searchField.parentNode.parentNode);
-						if(first !== null)
-							first.click();
-						else
-							b.close();
-					}
-					//if someone hits escape, close it
-					else if(key === 27)
-						b.close();
-				});
-				//we want to allow clicks
-				_bind(searchField, 'click', function(e){
-					e.stopPropagation();
-				});
-			}
-
-			//let it be known we've built things, great things
-			b.status = 1;
-			b.element.setAttribute('data-blobselected', 1);
-		},
-
-		//-------------------------------------------------
-		// destroy blobSelect
-		//
-		// remove the elements we've created so the
-		// select goes back to normal.
-		//
-		// @param n/a
-		// @return n/a
-		destroy: function(){
-			var b = this;
-
-			var container = b.element.parentNode;
-			container.parentNode.insertBefore(b.element, container);
-			_removeElement($$('.blobselect', container.parentNode));
-			b.element.setAttribute('data-blobselected', 0);
-		},
-
-		//-------------------------------------------------
-		// erase the instance from the face of the earth
-		//
-		// @param n/a
-		// @retrn true
-		uncreate: function(){
-			var b = this,
-				id = b.getId();
-			b.destroy();
-			b.removeAttribute('data-blobselected');
-			b.removeAttribute('data-blobselect-id');
-			delete blobSelected[id];
+			console.log('blobSelect[' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '] ' + msg);
 			return true;
 		},
 
 		//-------------------------------------------------
-		// open menu
+		// Initialized
 		//
 		// @param n/a
-		// @return n/a
-		open: function(){
-			var b = this,
-				container = this.element.parentNode;	//the container element
+		// @return true/false
 
-			//if this is already open, ignore
-			if(container.classList.contains('is-opening') || container.classList.contains('is-open'))
-				return true;
+		initialized : function(){
+			return (this.container instanceof HTMLDivElement);
+		},
 
-			_forEach($$('.blobselect.is-open'), function(select){
-				select.classList.remove('is-open');
-			});
+		//-------------------------------------------------
+		// Init
+		//
+		// @param n/a
+		// @return true/false
 
-			container.classList.add('is-opening');
-			setTimeout(function(){
-				container.classList.add('is-open');
-				container.classList.remove('is-opening');
+		init : function(){
+			//already initialized
+			if(this.initialized())
+				return this.debug('already initialized; aborting');
 
-				if(b.settings.search === true)
-				{
-					setTimeout(function(){
-						$('.blobselect-item-search', b.element.parentNode).textContent = $('.blobselect-item-search', b.element.parentNode).textContent.replace('/\s/g', ' ').trim();
-						$('.blobselect-item-search', b.element.parentNode).focus();
-					}, 100);
+			//sort out user settings
+			this.saveSettings(this.element.getAttribute('data-blobselect') || {});
+
+			//build our wrapper
+			this.container = document.createElement('div');
+				this.container.classList.add('blobselect');
+				if(this.element.multiple)
+					this.container.classList.add('is-multiple');
+				this.container.tabIndex = this.element.tabIndex || 0;
+				this.element.parentNode.insertBefore(this.container, this.element);
+
+			this.debug('built container');
+
+			//add selections wrapper
+			this.selections = document.createElement('div');
+				this.selections.classList.add('blobselect-selections');
+				this.container.appendChild(this.selections);
+
+			//move the select inside the container
+			this.container.appendChild(this.element);
+
+			//add a button
+			this.button = document.createElement('div');
+				this.button.classList.add('blobselect-button');
+				this.container.appendChild(this.button);
+
+			//our items wrapper
+			this.items = document.createElement('div');
+				this.items.classList.add('blobselect-items');
+				this.container.appendChild(this.items);
+
+			//search field
+			this.searchField();
+
+			//update selections
+			this.updateBuild();
+
+			//watch for changes that don't fire events
+			var me = this;
+			if(this.settings.watch){
+				this.debug('watching for changes every ' + (this.settings.watch/1000) + ' seconds');
+				this.watch = setInterval(function(){
+					me.updateBuild(false);
+				}, this.settings.watch);
+			}
+
+			//lastly, bind some events
+			_bind(this.element, 'change', function(){
+				if(!me.updateLock){
+					me.debug('element change event fired');
+					me.updateBuild(false);
 				}
-			}, 50);
-
-		},
-
-		//-------------------------------------------------
-		// close menu
-		//
-		// @param n/a
-		// @return n/a
-		close: function(container){
-			var container = this.element.parentNode;
-			container.classList.remove('is-open');
-			container.focus();
-		},
-
-		//-------------------------------------------------
-		// update selections
-		//
-		// @param n/a
-		// @return n/a
-		updateSelections: function(){
-			var b = this;
-
-			//updateLock is used to prevent multiple
-			//iterations stepping over each other
-			if(b.updateLock)
-				return;
-
-			//lock it
-			b.updateLock = true;
-
-			//make sure this is blobselected
-			if(!b.element.parentNode.classList.contains('blobselect'))
-				return;
-
-			//reset selections
-			b.selections = [];
-			_forEach($$('option', b.element), function(option){
-				if(option.selected)
-					b.selections.push(option.value);
 			});
 
-			//get rid of selection(s)
-			var s = $('.blobselect-selections', b.element.parentNode);
-			while(s.firstChild)
-				s.removeChild(s.firstChild);
+			//outside click
+			_bind($('html'), 'click', function(e){
+				me.debug('click outside');
+				if(me.isOpen()){
+					//ignore this or other blobselect elements
+					if(_closest(e.target, '.blobselect') !== null)
+						return true;
+					else
+						me.close();
+				}
+			});
 
-			//add selection(s)
-			_forEach(b.selections, function(selection){
-				var s = document.createElement('div');
-					s.setAttribute('class', 'blobselect-selection');
-					s.setAttribute('data-value', selection);
-					if(!selection.trim().length || selection.trim().toLowerCase() === b.settings.placeholder.toLowerCase())
-						s.classList.add('is-placeholder');
-					s.textContent =  b.options[selection];
+			_bind(this.container, 'click', function(e){
+				e.stopPropagation();
+				me.debug('click container');
 
-				//for multi-selects, clicking a selection de-selects it
-				if(b.multiple)
-				{
-					_bind(s, 'click', function(e){
+				if(!me.isOpen())
+					me.open();
+				else
+					me.close();
+			});
+
+			_bind(this.container, 'keyup', function(e){
+				var key = e.keyCode;
+
+				//open the menu if just about anything is pressed
+				if(key !== 9 && !me.isOpen()){
+					//transfer key to search?
+					if(me.settings.search && _isPrintable(key)){
+						me.search.textContent = String.fromCharCode(key).toLowerCase();
+						me.searchValue = null;
+						me.filterItems();
+					}
+					me.open();
+				}
+
+				else if(me.isOpen()){
+					//close on escape
+					if(key === 27)
+						me.close();
+
+					//enter = selection
+					else if(key === 13){
 						e.stopPropagation();
-						b.removeSelection(s.getAttribute('data-value'));
+						var choice = me.getActiveItem();
+						if(choice)
+							me.select(choice);
+						else
+							me.close();
+					}
+
+					//navigate on arrows, tabs
+					else if([9, 37, 38, 39, 40].indexOf(key) !== -1){
+						var active = me.getActiveItem(),
+							items = $$('.blobselect-item:not(.is-disabled):not(.is-not-match)', me.items),
+							direction = (key === 37 || key === 38) ? 'back' : 'next',
+							choice = null;
+
+						if(!active)
+							choice = items[0];
+						else if(direction === 'back')
+							choice = items.indexOf(active) > 0 ? items[items.indexOf(active) - 1] : items[0];
+						else
+							choice = items.indexOf(active) < items.length - 1 ? items[items.indexOf(active) + 1] : items[items.length - 1];
+
+						choice.focus();
+					}
+				}
+			});
+
+			return true;
+		},
+
+		//-------------------------------------------------
+		// Set Settings
+
+		saveSettings : function(userSettings){
+			userSettings = _parseJSON(userSettings);
+			if(!_isObject(userSettings))
+				userSettings = {};
+
+			this.settings = _extend(defaultSettings, userSettings);
+
+			//sanitize values
+			if(typeof this.settings.search !== 'boolean')
+				this.settings.search = (typeof this.settings.search === 'string' && this.settings.search.toLowerCase() === 'true') || (typeof this.settings.search === 'numeric' && this.settings.search);
+			this.settings.order = typeof this.settings.order === 'string' && ['ASC','DESC'].indexOf(this.settings.order.toUpperCase()) !== -1 ? this.settings.order.toUpperCase() : false;
+			this.settings.orderType = typeof this.settings.orderType === 'string' && ['string','numeric'].indexOf(this.settings.orderType.toLowerCase()) !== -1 ? this.settings.orderType.toLowerCase() : false;
+			this.settings.placeholder = _sanitizeWhitespace(this.settings.placeholder);
+			this.settings.placeholderOption = _sanitizeWhitespace(this.settings.placeholderOption);
+			this.settings.watch = parseInt(this.settings.watch, 10) || 0;
+			if(this.settings.watch < 0)
+				this.settings.watch = 0;
+			if(typeof this.settings.debug !== 'boolean')
+				this.settings.debug = (typeof this.settings.debug === 'string' && this.settings.debug.toLowerCase() === 'true') || (typeof this.settings.debug === 'numeric' && this.settings.debug);
+
+			this.debug('using settings: ' + JSON.stringify(this.settings));
+
+			//might need to add/remove search field
+			this.searchField();
+		},
+
+		//-------------------------------------------------
+		// Search Field
+
+		searchField : function(){
+			if(!this.initialized())
+				return false;
+
+			if(!this.settings.search && this.search !== null){
+				_removeElement(this.search);
+				this.search = null;
+				this.debug('search field removed');
+			}
+			else if(this.settings.search && this.search === null) {
+				this.search = document.createElement('div');
+					this.search.classList.add('blobselect-item-search');
+					this.search.setAttribute('type','text');
+					this.search.setAttribute('contentEditable','true');
+					this.search.tabIndex = 0;
+					if(this.items.firstChild)
+						this.items.insertBefore(this.search, this.items.firstChild);
+					else
+						this.items.appendChild(this.search);
+
+				this.debug('search field built');
+
+				var me = this;
+				_bind(this.search, 'keyup', function(e){
+					var key = e.keyCode;
+
+					e.stopPropagation();
+
+					//if they hit enter, treat as selection
+					if(key === 13){
+						e.preventDefault();
+						me.search.innerHTML = _sanitizeWhitespace(me.search.textContent);
+
+						var choice = me.getActiveItem();
+						if(choice)
+							me.select(choice);
+						else
+							me.close();
+					}
+					//or close if escape
+					else if(key === 27)
+						me.close();
+					//arrow keys, shift focus to items
+					else if([9, 38, 40].indexOf(key) !== -1){
+						e.preventDefault();
+						var items = $$('.blobselect-item:not(.is-disabled):not(.is-not-match)', me.items);
+						me.search.blur();
+						items[0].focus();
+					}
+					//filter
+					else if(_sanitizeWhitespace(me.search.textContent).toLowerCase() !== me.searchValue){
+						me.searchValue = _sanitizeWhitespace(me.search.textContent).toLowerCase();
+						me.filterItems();
+					}
+				});
+
+				//allow clicks
+				_bind(this.search, 'click', function(e){
+					e.stopPropagation();
+					me.debug('click search');
+					me.search.setAttribute('contentEditable','true');
+				});
+			}
+
+			return true;
+		},
+
+		//-------------------------------------------------
+		// Debounce Scheduler
+		//
+		// @param key
+		// @param function
+		// @param timeout
+		// @return true
+		debounce: function(key, func, timeout){
+			if(timeout === undefined || timeout === null)
+				timeout = 250;
+
+			if(this.debounceQueue[key] !== undefined && this.debounceQueue[key] !== null)
+				clearTimeout(this.debounceQueue[key]);
+
+			this.debounceQueue[key] = setTimeout(func(), timeout);
+			return true;
+		},
+
+		//-------------------------------------------------
+		// Update Build
+		//
+		// this rebuilds selection and item entries, and
+		// generates the correct hash
+
+		updateBuild: function(force){
+
+			var me = this;
+
+			return this.debounce(
+				'updateBuild',
+				function(){
+					var h = me.getHash();
+					me.debug('checking for updates');
+					if(force || h !== me.hash){
+						me.debug('updates found');
+						me.hash = h;
+						me.updateSelections();
+						me.updateItems();
+						me.searchValue = null;
+						me.filterItems();
+					}
+				},
+				100);
+		},
+
+		//-------------------------------------------------
+		// Build Option Hash
+
+		getHash: function(){
+			if(!this.initialized())
+				return false;
+
+			var h = [];
+
+			_forEach($$('option, optgroup', this.element), function(o){
+				h.push({
+					value : o.value,
+					label : o.textContent,
+					selected : o.selected,
+					disabled : o.disabled
+				});
+			});
+
+			return _hash(JSON.stringify(h));
+		},
+
+		//-------------------------------------------------
+		// Update Items
+
+		updateItems: function(){
+			if(!this.initialized())
+				return false;
+
+			var i = [],
+				me = this;
+				optgroup = $$('optgroup', this.element).length;
+
+			//we want to sort optgroup items within themselves
+			if(optgroup){
+				_forEach($$('optgroup', this.element), function(o){
+					i.push(o);
+
+					var tmp = [];
+					_forEach($$('option', o), function(o2){
+						tmp.push(o2);
+					});
+
+					tmp = me.sortItems(tmp);
+
+					_forEach(tmp, function(o2){
+						i.push(o2);
+					});
+				});
+
+				//now do the same thing for any un-grouped options
+				var tmp = [];
+				_forEach(this.element.children, function(o){
+					if(o.tagName === 'OPTION')
+						tmp.push(o);
+				});
+
+				tmp = this.sortItems(tmp);
+
+				_forEach(tmp, function(o){
+					i.push(o);
+				});
+			}
+			//just options
+			else {
+				_forEach($$('option', this.element), function(o){
+					i.push(o);
+				});
+
+				i = this.sortItems(i);
+			}
+
+			//clear any old items
+			_removeElement($$('.blobselect-item-group, .blobselect-item', this.items));
+
+			var tabindex = 1;
+			_forEach(i, function(o){
+				var el = document.createElement('div');
+
+				//an option group
+				if(o.tagName === 'OPTGROUP'){
+					el.classList.add('blobselect-item-group');
+					el.textContent = _sanitizeWhitespace(o.label);
+				}
+				//an option
+				else {
+					tabindex++;
+					el.tabIndex = tabindex;
+
+					var label = _sanitizeWhitespace(o.textContent);
+
+					el.classList.add('blobselect-item');
+
+					if(o.selected)
+						el.classList.add('is-active');
+
+					if(o.parentNode.tagName === 'OPTGROUP')
+						el.classList.add('has-group');
+
+					if(o.disabled)
+						el.classList.add('is-disabled');
+
+					el.setAttribute('data-value', o.value);
+					el.setAttribute('data-label', label);
+
+					if(!label.length || label.toLowerCase() === me.settings.placeholderOption.toLowerCase()){
+						el.classList.add('is-placeholder');
+						el.textContent = me.settings.placeholderOption;
+					}
+					else
+						el.textContent = label;
+
+					//bind click
+					_bind(el, 'click', function(e){
+						e.stopPropagation();
+						me.debug('click item');
+						if(!el.classList.contains('is-disabled')){
+							me.select(el);
+						}
+					});
+
+					_bind(el, 'keyup', function(e){
+						var key = e.keyCode;
+						if(key === 13 && !el.classList.contains('disabled')){
+							e.stopPropagation();
+							me.select(el);
+						}
+						else if(key === 27){
+							e.stopPropagation();
+							me.close();
+						}
+					});
+
+					_bind(el, 'focus', function(e){
+						//since true focus is lost on events caught by wrappers,
+						//we want to store this as an attribute
+						me.items.setAttribute('data-focused', $$('.blobselect-item', me.items).indexOf(el));
+						el.classList.add('is-focused');
+					});
+
+					_bind(el, 'blur', function(e){
+						el.classList.remove('is-focused');
 					});
 				}
 
-				$('.blobselect-selections', b.element.parentNode).appendChild(s);
+				me.items.appendChild(el);
 			});
 
-			//also update our pseudo-menus
-			_forEach($$('.blobselect-item', b.element.parentNode), function(element){
-				var selected_now = b.selections.indexOf(element.getAttribute('data-value')) !== -1,
-					selected_then = element.classList.contains('is-active');
-				if(selected_now && !selected_then)
-					element.classList.add('is-active');
-				else if(!selected_now && selected_then)
-					element.classList.remove('is-active');
-			});
-
-			//manually fire "change" event if the values have, well, changed
-			if(JSON.stringify(b.previous) !== JSON.stringify(b.selections))
-			{
-				var event = document.createEvent("UIEvents");
-				event.initUIEvent("change", true, true, window, 1);
-				b.element.dispatchEvent(event);
-				b.previous = b.selections;
-			}
-
-			//unlock it
-			b.updateLock = false;
+			this.debug('dropdown items rebuilt');
 		},
 
 		//-------------------------------------------------
-		// deselect something
+		// Active Item
 		//
-		// @param option value
-		// @return true/false
-		removeSelection: function(value){
-			var b = this
-				option = b.getOptionByValue(value);
+		// return the focused/enabled item, or first
+		// enabled item
 
-			if(option !== false)
-			{
-				option.selected = 0;
-				b.updateSelections();
+		getActiveItem: function(){
+			var choice,
+				me = this,
+				items = $$('.blobselect-item', this.items),
+				focused = parseInt(this.items.getAttribute('data-focused'), 10) || -1;
+
+			//opt for focused first
+			if(focused !== -1){
+				choice = items[focused];
+			}
+
+			//otherwise find the first enabled child
+			if(!choice || choice.classList.contains('is-disabled') || choice.classList.contains('is-not-match')){
+				choice = null;
+				//locate either a focused/enabled item, or the first enabled item
+				_forEach(items, function(item){
+					if(!item.classList.contains('is-not-match') && !item.classList.contains('is-disabled')){
+						if(!choice){
+							me.debug('first item "' + item.getAttribute('data-value') + '"');
+							choice = item;
+						}
+					}
+				});
+			}
+
+			return choice;
+		},
+
+		//-------------------------------------------------
+		// Update Selections
+
+		updateSelections: function(){
+			if(!this.initialized())
+				return false;
+
+			var s = [],
+				me = this;
+
+			_forEach($$('option', this.element), function(o){
+				if(o.selected)
+					s.push(o);
+			});
+
+			s = this.sortItems(s);
+
+			//clear any old selections
+			while(this.selections.firstChild)
+				_removeElement(this.selections.firstChild);
+
+			_forEach(s, function(o){
+				var el = document.createElement('div'),
+					label = _sanitizeWhitespace(o.textContent);
+					el.classList.add('blobselect-selection');
+					el.setAttribute('data-value', o.value);
+					el.setAttribute('data-label', label);
+
+					if(!label.length || label.toLowerCase() === me.settings.placeholderOption.toLowerCase()){
+						el.classList.add('is-placeholder');
+						el.textContent = me.settings.placeholder;
+					}
+					else
+						el.textContent = label;
+
+				//for multi-selects, clicking an item can remove it
+				if(me.element.multiple){
+					_bind(el, 'click', function(e){
+						e.stopPropagation();
+						me.debug('click selection');
+						me.unselect(this);
+					});
+				}
+
+				//and add it
+				me.selections.appendChild(el);
+			});
+
+			this.debug('selections rebuilt');
+		},
+
+		//-------------------------------------------------
+		// Open
+
+		isOpen : function(){
+			return (this.container.classList.contains('is-open') || this.container.classList.contains('is-opening'));
+		},
+
+		open : function(){
+			var me = this;
+
+			//we can ignore this if already open or not initialized
+			if(!this.initialized() || this.isOpen())
 				return true;
+
+			//close any other blobselects
+			_forEach($$('.blobselect.is-open select'), function(s){
+				s.blobSelect.close();
+			});
+
+			this.items.setAttribute('data-focused', -1);
+
+			this.container.classList.add('is-opening');
+			setTimeout(function(){
+				me.container.classList.add('is-open');
+				me.container.classList.remove('is-opening');
+			}, 50);
+
+			if(me.settings.search){
+				me.search.setAttribute('contentEditable','true');
+
+				//setTimeout(function(){
+				me.search.focus();
+				_cursorToEnd(me.search);
 			}
 
-			return false;
+			this.debug('dropdown opened');
 		},
 
 		//-------------------------------------------------
-		// select something
-		//
-		// @param option value
-		// @return true/false
-		addSelection: function(value){
-			var b = this,
-				option = b.getOptionByValue(value),
-				selected = b.element.selectedIndex;
+		// Close
 
-			if(option !== false)
-			{
-				if(b.multiple)
-					option.selected = 1;
+		close : function(){
+			//we can ignore this if already open or not initialized
+			if(!this.initialized() || !this.isOpen())
+				return true;
+
+			this.container.classList.remove('is-open', 'is-opening');
+			this.container.focus();
+			this.items.setAttribute('data-focused', -1);
+
+			this.debug('dropdown closed');
+		},
+
+		//-------------------------------------------------
+		// Trigger Change
+		//
+		// this triggers the input change event in case
+		// anybody else is listening
+		triggerChange: function(){
+			this.updateLock = true;
+			var event = document.createEvent('UIEvents');
+			event.initUIEvent("change", true, true, window, 1);
+			this.element.dispatchEvent(event);
+			this.updateLock = false;
+		},
+
+		//-------------------------------------------------
+		// Select
+
+		select : function(o){
+			if(!this.initialized() || !(o instanceof HTMLDivElement) || !o.classList.contains('blobselect-item'))
+				return this.close();
+
+			var value = o.getAttribute('data-value') || '',
+				options = this.getOptionByValue(value),
+				me = this;
+
+
+			if(options.length){
+				if(this.element.multiple){
+					_forEach(options, function(option){
+						if(option.selected){
+							option.selected = 0;
+							me.debug('unselected: "' + option.value + '"');
+						}
+						else {
+							option.selected = 1;
+							me.debug('selected: "' + option.value + '"');
+						}
+					});
+				}
+				else{
+					this.element.selectedIndex = options[0].index;
+					this.debug('selected: "' + options[0].value + '"');
+				}
+			}
+			else if(!this.element.multiple){
+				this.element.selectedIndex = this.element.firstChild.index;
+				this.debug('selected: "' + this.element.firstChild.value + '"');
+			}
+
+			this.close();
+			this.updateBuild();
+			this.triggerChange();
+		},
+
+		//-------------------------------------------------
+		// Unselect
+
+		unselect : function(o){
+			if(!this.initialized() || !this.element.multiple || !(o instanceof HTMLDivElement) || !(o.classList.contains('blobselect-selection') || o.classList.contains('blobselect-item')))
+				return this.close();
+
+			var value = o.getAttribute('data-value') || '',
+				options = this.getOptionByValue(value, true),
+				me = this;
+
+			if(options.length){
+				_forEach(options, function(option){
+					option.selected = 0;
+					me.debug('unselected: "' + option.value + '"');
+				});
+			}
+
+			this.close();
+			this.updateBuild();
+			this.triggerChange();
+		},
+
+		//-------------------------------------------------
+		// Get Option by Value
+
+		getOptionByValue : function(value, allowDisabled){
+			if(!this.initialized())
+				return false;
+
+			var me = this,
+				found = [];
+
+			_forEach($$('option', this.element), function(option){
+				if(option.value === value && (allowDisabled || !option.disabled))
+					found.push(option);
+			});
+
+			return found;
+		},
+
+		//-------------------------------------------------
+		// Filter Items by Search
+
+		filterItems: function(){
+			if(!this.initialized() || !this.settings.search)
+				return false;
+
+			var me = this;
+
+			this.debounce(
+				'filterItems',
+				function(){
+					var needle = _sanitizeRegexp(_sanitizeWhitespace(me.search.textContent)),
+						items = $$('.blobselect-item', me.items),
+						matches = 0;
+
+					//first pass, try matches
+					if(needle.length){
+						_forEach(items, function(item){
+							var haystack = item.getAttribute('data-label'),
+								matchNew = !needle.length || RegExp(needle, 'i').test(haystack),
+								matchOld = !item.classList.contains('is-not-match');
+
+							//start fresh
+							if(item.classList.contains('is-placeholder'))
+								haystack = me.settings.placeholderOption;
+
+							item.textContent = haystack;
+
+							//matches now
+							if(matchNew){
+								item.classList.remove('is-not-match');
+								item.classList.add('is-match');
+								item.innerHTML = haystack.replace(RegExp(needle, "gi"), "<mark>$&</mark>");
+								matches++;
+							}
+							//doesn't match now
+							else if(!matchNew){
+								item.classList.add('is-not-match');
+								item.classList.remove('is-match');
+							}
+						});
+					}
+
+					//if there are no matches, treat it like a non-search
+					if(!matches){
+						_forEach(items, function(item){
+							item.classList.remove('is-not-match');
+							item.innerHTML = item.textContent;
+						});
+					}
+					else
+						me.debug('items filtered by search term');
+				},
+				100
+			);
+		},
+
+		//---------------------------------------------
+		// Sort Items
+
+		sortItems: function(items){
+			if(!this.initialized() || !this.settings.orderType || !this.settings.order || !Array.isArray(items) || !items.length)
+				return items;
+
+			var me = this;
+			items.sort(function(a,b){
+				var aText = a.getAttribute('data-label') || _sanitizeWhitespace(a.textContent) || _sanitizeWhitespace(a.label),
+					bText = b.getAttribute('data-label') || _sanitizeWhitespace(b.textContent) || _sanitizeWhitespace(b.label);
+
+				if(me.settings.orderType === 'numeric'){
+					aText = Number(aText.replace(/[^\d\.]/g, '')) || 0,
+					bText = Number(bText.replace(/[^\d\.]/g, '')) || 0;
+				}
+
+				if(aText === bText)
+					return 0;
+				else if(me.settings.order === 'ASC')
+					return aText < bText ? -1 : 1;
 				else
-					b.element.selectedIndex = option.index;
-
-				b.updateSelections();
-				return true;
-			}
-
-			return false;
-		},
-
-		//-------------------------------------------------
-		// get option by value
-		//
-		// @param value
-		// @return element or false
-		getOptionByValue: function(value){
-			var b = this,
-				option = false;
-
-			_forEach($$('option', b.element), function(element){
-				if(element.value === value)
-					option = element;
+					return aText > bText ? -1 : 1;
 			});
 
-			return option;
-		},
-
-		//-------------------------------------------------
-		// sort options
-		//
-		// this rearranges the original <option> tags
-		// based on their labels.  blobSelect's fake menu
-		// will then be based on the re-ordered version.
-		//
-		// @param n/a
-		// @return n/a
-		sortOptions: function(){
-			var options = $$('option', this.element);
-
-			if(this.settings.orderType.toLowerCase() === 'string')
-				options.sort(this.sortByString);
-			else if(this.settings.orderType.toLowerCase() === 'numeric')
-				options.sort(this.sortByNumber);
-
-			if(this.settings.order.toUpperCase() === 'DESC')
-				options.reverse();
-
-			_forEach(options, function(option){
-				option.parentNode.appendChild(option);
-			});
-		},
-
-		//by string
-		sortByString: function(a, b){
-			return a.textContent.trim().toLowerCase().localeCompare(b.textContent.trim().toLowerCase());
-		},
-
-		//by number
-		sortByNumber: function(a, b){
-			//not perfect, but try to strip out non-number things
-			var av = Number(a.textContent.replace(/[^\d\.]/g, '')),
-				bv = Number(b.textContent.replace(/[^\d\.]/g, ''));
-			//if that gives us non-numeric values, zero them
-			if(isNaN(av))
-				av = 0;
-			if(isNaN(bv))
-				bv = 0;
-
-			return av - bv;
+			return items;
 		}
+	};
 
-	}
+
 
 	//---------------------------------------------------------------------
-	// Initialization
+	// Extend DOM
 	//---------------------------------------------------------------------
 
-	//-------------------------------------------------
-	// Init
-	//
-	// @param n/a
-	// @return n/a
-	function init(){
+	Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
+		get: function(){
+			Object.defineProperty(this, "blobSelect", {
+				value: new blobSelect(this)
+			});
+
+			return this.blobSelect;
+		},
+		configurable: true,
+		writeable: false
+	});
+
+
+
+	//---------------------------------------------------------------------
+	// Auto Initialize
+	//---------------------------------------------------------------------
+
+	document.addEventListener('DOMContentLoaded', function(){
 		_forEach($$('select[data-blobselect]'), function(select){
-			new blobSelect(select);
+			select.blobSelect.init();
 		});
-	}
-
-	try {
-		//run when DOM is done
-		document.addEventListener("DOMContentLoaded", init);
-	} catch(e){ }
+	});
 
 })();
-
-//store initiated blobSelect() objects
-var blobSelected = {};
-
-//-------------------------------------------------
-// Get blobSelect() object by element
-//
-// @param element
-// @param create (create if not found)
-// @return object or false
-function getBlobSelectByElement(element, create){
-
-	if(create === undefined){
-		create = true;
-	}
-
-	//if it is an array, loop through each element
-	//and return last response
-	if(Array.isArray(element))
-	{
-		for(var key = 0, len = element.length; key < len; key++)
-			return getBlobSelectByElement(element[key]);
-	}
-
-	//if we have a proper element, move forward!
-	if((typeof HTMLElement === "object" ? element instanceof HTMLElement : //DOM2
-		element && typeof element === "object" && element !== null && element.nodeType === 1 && typeof element.nodeName==="string")
-		&& element.tagName === 'SELECT')
-	{
-		var id = element.getAttribute('data-blobselect-id') || false;
-		if(id && blobSelected.hasOwnProperty(id))
-			return blobSelected[id];
-		else if(create)
-			return new blobSelect(element);
-	}
-
-	return false;
-}

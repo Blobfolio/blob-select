@@ -350,6 +350,10 @@ $color-pink-5:	#590209;
 		font-size: .6rem;
 	}
 
+	&.is-disabled {
+		opacity: .5;
+	}
+
 	//items that do not match the search
 	&.is-not-match {
 		display: none;
