@@ -1215,15 +1215,20 @@
 	//---------------------------------------------------------------------
 
 	Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
-		get: function(){
-			Object.defineProperty(this, "blobSelect", {
+		//thanks to @guoguo12 for the weird IE fix!
+		get: function getter () {
+			Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
+				get: undefined
+			});
+			Object.defineProperty(this, 'blobSelect', {
 				value: new blobSelect(this)
 			});
-
-			return this.blobSelect;
+			Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
+				get: getter
+			});
+			return this['blobSelect'];
 		},
-		configurable: true,
-		writeable: false
+		configurable: true
 	});
 
 
