@@ -33,8 +33,7 @@
 *	watch (int)
 *		have each blobSelect instance watch itself for unannounced changes
 *		(that is, no proper event was fired) every WATCH milliseconds
-*		this can negatively impact performance and shouldn't be necessary,
-*		but if lots of libraries are working independently, it can help
+*		this adds overhead, but can be necessary with e.g. AngularJS
 *		default: false
 *	debug (bool)
 *		dump lots of event info to the console log
@@ -281,7 +280,6 @@
 	// @param keyCode
 	// @return true/false
 	var _isPrintable = function(key){
-
 		return (
 		(key > 47 && key < 58)   ||	// number keys   || // spacebar & return key(s) (if you want to allow carriage returns)
 		(key > 64 && key < 91)   ||	// letter keys
@@ -299,12 +297,26 @@
 		if(!Array.isArray(elements) && elements instanceof HTMLElement)
 			elements = [elements];
 
+		//prefer jQuery's element removal handling as it does a
+		//better job of clearing bound events across browsers
+		if(typeof jQuery !== 'undefined'){
+			_forEach(elements, function(element){
+				jQuery(element).remove();
+				if(element in _bound)
+					delete _bound[element];
+			});
+			return;
+		}
+
+		//otherwise the vanilla way!
 		_forEach(elements, function(element){
 			//clean up listeners
 			if(element in _bound){
 				_forEach(_bound[element], function(event, callbacks){
 					_forEach(callbacks, function(callback){
-						element.removeEventListener(event, callback, false);
+						//this doesn't work in all browsers
+						try { element.removeEventListener(event, callback, false); }
+						catch (ex) { this.debug('failed to unregister events when removing object'); }
 					});
 				});
 				delete _bound[element];
@@ -394,7 +406,7 @@
 		//
 		// @param log
 		// @return n/a
-		debug : function(msg){
+		debug: function(msg){
 			if(!this.settings.debug)
 				return false;
 
@@ -408,7 +420,7 @@
 		// @param n/a
 		// @return true/false
 
-		initialized : function(){
+		initialized: function(){
 			return (this.container instanceof HTMLDivElement);
 		},
 
@@ -418,7 +430,7 @@
 		// @param n/a
 		// @return true/false
 
-		init : function(){
+		init: function(){
 			//already initialized
 			if(this.initialized())
 				return this.debug('already initialized; aborting');
@@ -489,63 +501,9 @@
 				}
 			});
 
-			_bind(this.container, 'click', function(e){
-				e.stopPropagation();
-				me.debug('click container');
-
-				if(!me.isOpen())
-					me.open();
-				else
-					me.close();
-			});
-
-			_bind(this.container, 'keyup', function(e){
-				var key = e.keyCode;
-
-				//open the menu if just about anything is pressed
-				if(key !== 9 && !me.isOpen()){
-					//transfer key to search?
-					if(me.settings.search && _isPrintable(key)){
-						me.search.textContent = String.fromCharCode(key).toLowerCase();
-						me.searchValue = null;
-						me.filterItems();
-					}
-					me.open();
-				}
-
-				else if(me.isOpen()){
-					//close on escape
-					if(key === 27)
-						me.close();
-
-					//enter = selection
-					else if(key === 13){
-						e.stopPropagation();
-						var choice = me.getActiveItem();
-						if(choice)
-							me.select(choice);
-						else
-							me.close();
-					}
-
-					//navigate on arrows, tabs
-					else if([9, 37, 38, 39, 40].indexOf(key) !== -1){
-						var active = me.getActiveItem(),
-							items = $$('.blobselect-item:not(.is-disabled):not(.is-not-match)', me.items),
-							direction = (key === 37 || key === 38) ? 'back' : 'next',
-							choice = null;
-
-						if(!active)
-							choice = items[0];
-						else if(direction === 'back')
-							choice = items.indexOf(active) > 0 ? items[items.indexOf(active) - 1] : items[0];
-						else
-							choice = items.indexOf(active) < items.length - 1 ? items[items.indexOf(active) + 1] : items[items.length - 1];
-
-						choice.focus();
-					}
-				}
-			});
+			//clicks and keypresses
+			_bind(this.container, 'click', function(e){ return me.containerClick(e); });
+			_bind(this.container, 'keyup', function(e){ return me.containerKey(e); });
 
 			return true;
 		},
@@ -553,7 +511,7 @@
 		//-------------------------------------------------
 		// Set Settings
 
-		saveSettings : function(userSettings){
+		saveSettings: function(userSettings){
 			userSettings = _parseJSON(userSettings);
 			if(!_isObject(userSettings))
 				userSettings = {};
@@ -582,7 +540,7 @@
 		//-------------------------------------------------
 		// Search Field
 
-		searchField : function(){
+		searchField: function(){
 			if(!this.initialized())
 				return false;
 
@@ -603,47 +561,6 @@
 						this.items.appendChild(this.search);
 
 				this.debug('search field built');
-
-				var me = this;
-				_bind(this.search, 'keyup', function(e){
-					var key = e.keyCode;
-
-					e.stopPropagation();
-
-					//if they hit enter, treat as selection
-					if(key === 13){
-						e.preventDefault();
-						me.search.innerHTML = _sanitizeWhitespace(me.search.textContent);
-
-						var choice = me.getActiveItem();
-						if(choice)
-							me.select(choice);
-						else
-							me.close();
-					}
-					//or close if escape
-					else if(key === 27)
-						me.close();
-					//arrow keys, shift focus to items
-					else if([9, 38, 40].indexOf(key) !== -1){
-						e.preventDefault();
-						var items = $$('.blobselect-item:not(.is-disabled):not(.is-not-match)', me.items);
-						me.search.blur();
-						items[0].focus();
-					}
-					//filter
-					else if(_sanitizeWhitespace(me.search.textContent).toLowerCase() !== me.searchValue){
-						me.searchValue = _sanitizeWhitespace(me.search.textContent).toLowerCase();
-						me.filterItems();
-					}
-				});
-
-				//allow clicks
-				_bind(this.search, 'click', function(e){
-					e.stopPropagation();
-					me.debug('click search');
-					me.search.setAttribute('contentEditable','true');
-				});
 			}
 
 			return true;
@@ -805,27 +722,6 @@
 					else
 						el.textContent = label;
 
-					//bind click
-					_bind(el, 'click', function(e){
-						e.stopPropagation();
-						me.debug('click item');
-						if(!el.classList.contains('is-disabled')){
-							me.select(el);
-						}
-					});
-
-					_bind(el, 'keyup', function(e){
-						var key = e.keyCode;
-						if(key === 13 && !el.classList.contains('disabled')){
-							e.stopPropagation();
-							me.select(el);
-						}
-						else if(key === 27){
-							e.stopPropagation();
-							me.close();
-						}
-					});
-
 					_bind(el, 'focus', function(e){
 						//since true focus is lost on events caught by wrappers,
 						//we want to store this as an attribute
@@ -913,15 +809,6 @@
 					else
 						el.textContent = label;
 
-				//for multi-selects, clicking an item can remove it
-				if(me.element.multiple){
-					_bind(el, 'click', function(e){
-						e.stopPropagation();
-						me.debug('click selection');
-						me.unselect(this);
-					});
-				}
-
 				//and add it
 				me.selections.appendChild(el);
 			});
@@ -930,13 +817,171 @@
 		},
 
 		//-------------------------------------------------
+		// Container Click Handler
+
+		containerClick: function(e){
+			e.stopPropagation();
+
+			this.debug('clicked');
+
+			//a (multi) selection
+			if(e.target.classList.contains('blobselect-selection') && this.element.multiple){
+				return this.unselect(e.target);
+			}
+
+			//search field
+			else if(e.target.classList.contains('blobselect-item-search')){
+				this.search.setAttribute('contentEditable','true');
+				return;
+			}
+
+			//an item
+			else if(e.target.classList.contains('blobselect-item')){
+				if(!e.target.classList.contains('is-disabled')){
+					this.select(e.target);
+				}
+				return;
+			}
+
+			//toggle container state
+			if(!this.isOpen())
+				return this.open();
+			else
+				return this.close();
+		},
+
+		//-------------------------------------------------
+		// Container Key Handler
+
+		containerKey: function(e){
+			var key = e.keyCode,
+				map = {
+					8: "backspace",
+					9: "tab",
+					13: "enter",
+					27: "escape",
+					32: "space",
+					37: "left",
+					38: "up",
+					39: "right",
+					40: "down",
+
+				},
+				keyMapped = map[key] || 'other',
+				keyPrintable = _isPrintable(key);
+
+
+
+			//if the menu is not open...
+			if(!this.isOpen()){
+				//open the menu on just about any key
+				if(['tab','backspace'].indexOf(keyMapped) === -1){
+					e.stopPropagation();
+
+					//add the key to the search field?
+					if(this.settings.search && keyPrintable){
+						this.search.textContent = String.fromCharCode(key).toLowerCase();
+						this.searchValue = null;
+						this.filterItems();
+					}
+
+					return this.open();
+				}
+				return;
+			}
+
+			//escape
+			else if(keyMapped === 'escape'){
+				e.stopPropagation();
+				return this.close();
+			}
+
+			//enter on current item
+			else if(keyMapped === 'enter'){
+				e.stopPropagation();
+				e.preventDefault();
+
+				//update search?
+				if(this.search)
+					this.search.innerHTML = _sanitizeWhitespace(this.search.textContent);
+
+				//select the selection
+				var choice = this.getActiveItem();
+				if(choice)
+					return this.select(choice);
+				else
+					return this.close();
+			}
+
+			//navigation?
+			else if(['tab','up','down','left','right'].indexOf(keyMapped) !== -1){
+				e.stopPropagation();
+				if(e.target.classList.contains('blobselect-item-search')){
+					//we only want to exit the search field on these keys
+					if(['tab','up','down'].indexOf(keyMapped) !== -1)
+						return this.traverseItems('current');
+
+					return;
+				}
+
+				var direction = ['tab','down','right'].indexOf(keyMapped) !== -1 ? 'next' : 'back';
+				return this.traverseItems(direction);
+			}
+
+			//search field
+			else if(e.target.classList.contains('blobselect-item-search')){
+				e.stopPropagation();
+
+				//filter items?
+				if(_sanitizeWhitespace(this.search.textContent).toLowerCase() !== this.searchValue){
+					this.searchValue = _sanitizeWhitespace(this.search.textContent).toLowerCase();
+					return this.filterItems();
+				}
+
+				return;
+			}
+		},
+
+		//-------------------------------------------------
+		// Traverse Items
+
+		traverseItems: function(direction){
+			var active = this.getActiveItem(),
+				items = $$('.blobselect-item:not(.is-disabled):not(.is-not-match)', this.items),
+				activeIndex = items.indexOf(active),
+				choice = null;
+
+			//bad active somehow?
+			if(activeIndex === -1){
+				if(items.length)
+					activeIndex = 0;
+				else
+					return;
+			}
+
+			//we just want to move to the current
+			if(direction === 'current')
+				choice = items[activeIndex];
+
+			//back
+			else if(direction === 'back')
+				choice = activeIndex > 0 ? items[activeIndex - 1] : items[0];
+
+			//next
+			else
+				choice = activeIndex < items.length - 1 ? items[activeIndex + 1] : items[items.length - 1];
+
+			return choice.focus();
+		},
+
+		//-------------------------------------------------
 		// Open
 
-		isOpen : function(){
+		isOpen: function(){
 			return (this.container.classList.contains('is-open') || this.container.classList.contains('is-opening'));
 		},
 
-		open : function(){
+		open: function(){
 			var me = this;
 
 			//we can ignore this if already open or not initialized
@@ -970,7 +1015,7 @@
 		//-------------------------------------------------
 		// Close
 
-		close : function(){
+		close: function(){
 			//we can ignore this if already open or not initialized
 			if(!this.initialized() || !this.isOpen())
 				return true;
@@ -998,7 +1043,7 @@
 		//-------------------------------------------------
 		// Select
 
-		select : function(o){
+		select: function(o){
 			if(!this.initialized() || !(o instanceof HTMLDivElement) || !o.classList.contains('blobselect-item'))
 				return this.close();
 
@@ -1038,7 +1083,7 @@
 		//-------------------------------------------------
 		// Unselect
 
-		unselect : function(o){
+		unselect: function(o){
 			if(!this.initialized() || !this.element.multiple || !(o instanceof HTMLDivElement) || !(o.classList.contains('blobselect-selection') || o.classList.contains('blobselect-item')))
 				return this.close();
 
@@ -1061,7 +1106,7 @@
 		//-------------------------------------------------
 		// Get Option by Value
 
-		getOptionByValue : function(value, allowDisabled){
+		getOptionByValue: function(value, allowDisabled){
 			if(!this.initialized())
 				return false;
 
