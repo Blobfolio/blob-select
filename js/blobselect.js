@@ -663,10 +663,16 @@
 				//now do the same thing for any un-grouped options
 				var tmp = [];
 				_forEach(this.element.children, function(o){
-					if(o.tagName === 'OPTION')
-						tmp.push(o);
-				});
+					if(o.tagName === 'OPTION'){
+						//bubble placeholders to top
+						var label = _sanitizeWhitespace(o.textContent);
+						if(!label.length || label.toLowerCase() === me.settings.placeholderOption.toLowerCase())
+							i.unshift(o);
+						else
+							tmp.push(o);
 
+					}
+				});
 				tmp = this.sortItems(tmp);
 
 				_forEach(tmp, function(o){
@@ -827,6 +833,11 @@
 			//a (multi) selection
 			if(e.target.classList.contains('blobselect-selection') && this.element.multiple){
 				return this.unselect(e.target);
+			}
+
+			//the real select
+			else if(e.target === this.element) {
+				return;
 			}
 
 			//search field
@@ -1190,6 +1201,12 @@
 			items.sort(function(a,b){
 				var aText = a.getAttribute('data-label') || _sanitizeWhitespace(a.textContent) || _sanitizeWhitespace(a.label),
 					bText = b.getAttribute('data-label') || _sanitizeWhitespace(b.textContent) || _sanitizeWhitespace(b.label);
+
+				//treat placeholders as priority
+				if(aText.toLowerCase() === me.settings.placeholderOption.toLowerCase())
+					aText = me.settings.orderType === 'numeric' ? 0 : '';
+				if(bText.toLowerCase() === me.settings.placeholderOption.toLowerCase())
+					bText = me.settings.orderType === 'numeric' ? 0 : '';
 
 				if(me.settings.orderType === 'numeric'){
 					aText = Number(aText.replace(/[^\d\.]/g, '')) || 0,
