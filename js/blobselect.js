@@ -88,6 +88,9 @@
 	function _hash(key, seed) {
 		var remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
 
+		if(typeof key === 'object')
+			key = JSON.stringify(key);
+
 		remainder = key.length & 3; // key.length % 4
 		bytes = key.length - remainder;
 		h1 = seed;
@@ -116,8 +119,8 @@
 		k1 = 0;
 
 		switch (remainder) {
-			case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
-			case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+			case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16; break;
+			case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8; break;
 			case 1: k1 ^= (key.charCodeAt(i) & 0xff);
 
 			k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
@@ -210,8 +213,8 @@
 			}
 		}
 		else {
-			for (var key = 0, len = collection.length; key < len; key++)
-				callback(collection[key], key, collection);
+			for (var akey = 0, len = collection.length; akey < len; akey++)
+				callback(collection[akey], akey, collection);
 		}
 	};
 
@@ -233,7 +236,7 @@
 	var _sanitizeWhitespace = function(str, trim){
 		str = str.replace(/\s{1,}/mg, ' ');
 		return str.trim();
-	}
+	};
 
 	//-------------------------------------------------
 	// JSON.parse() wrapper that won't explode if
@@ -272,7 +275,7 @@
 		searchSelection.removeAllRanges();
 		searchSelection.addRange(searchRange);
 		return;
-	}
+	};
 
 	//-------------------------------------------------
 	// printable key codes
@@ -520,7 +523,7 @@
 
 			//sanitize values
 			if(typeof this.settings.search !== 'boolean')
-				this.settings.search = (typeof this.settings.search === 'string' && this.settings.search.toLowerCase() === 'true') || (typeof this.settings.search === 'numeric' && this.settings.search);
+				this.settings.search = (typeof this.settings.search === 'string' && this.settings.search.toLowerCase() === 'true') || (typeof this.settings.search === 'number' && this.settings.search);
 			this.settings.order = typeof this.settings.order === 'string' && ['ASC','DESC'].indexOf(this.settings.order.toUpperCase()) !== -1 ? this.settings.order.toUpperCase() : false;
 			this.settings.orderType = typeof this.settings.orderType === 'string' && ['string','numeric'].indexOf(this.settings.orderType.toLowerCase()) !== -1 ? this.settings.orderType.toLowerCase() : false;
 			this.settings.placeholder = _sanitizeWhitespace(this.settings.placeholder);
@@ -529,7 +532,7 @@
 			if(this.settings.watch < 0)
 				this.settings.watch = 0;
 			if(typeof this.settings.debug !== 'boolean')
-				this.settings.debug = (typeof this.settings.debug === 'string' && this.settings.debug.toLowerCase() === 'true') || (typeof this.settings.debug === 'numeric' && this.settings.debug);
+				this.settings.debug = (typeof this.settings.debug === 'string' && this.settings.debug.toLowerCase() === 'true') || (typeof this.settings.debug === 'number' && this.settings.debug);
 
 			this.debug('using settings: ' + JSON.stringify(this.settings));
 
@@ -629,7 +632,20 @@
 				});
 			});
 
-			return _hash(JSON.stringify(h));
+			return _hash(h);
+		},
+
+		//-------------------------------------------------
+		// Is Placeholder?
+
+		is_placeholder: function(o){
+			if(o.tagName !== 'OPTION')
+				return false;
+
+			var label = _sanitizeWhitespace(o.textContent),
+				override = parseInt(o.getAttribute('data-placeholder'), 10) || 0;
+
+			return (!label.length || override === 1 || label.toLowerCase() === this.settings.placeholderOption.toLowerCase());
 		},
 
 		//-------------------------------------------------
@@ -665,8 +681,7 @@
 				_forEach(this.element.children, function(o){
 					if(o.tagName === 'OPTION'){
 						//bubble placeholders to top
-						var label = _sanitizeWhitespace(o.textContent);
-						if(!label.length || label.toLowerCase() === me.settings.placeholderOption.toLowerCase())
+						if(me.is_placeholder(o))
 							i.unshift(o);
 						else
 							tmp.push(o);
@@ -721,7 +736,7 @@
 					el.setAttribute('data-value', o.value);
 					el.setAttribute('data-label', label);
 
-					if(!label.length || label.toLowerCase() === me.settings.placeholderOption.toLowerCase()){
+					if(me.is_placeholder(o)){
 						el.classList.add('is-placeholder');
 						el.textContent = me.settings.placeholderOption;
 					}
@@ -808,7 +823,7 @@
 					el.setAttribute('data-value', o.value);
 					el.setAttribute('data-label', label);
 
-					if(!label.length || label.toLowerCase() === me.settings.placeholderOption.toLowerCase()){
+					if(me.is_placeholder(o)){
 						el.classList.add('is-placeholder');
 						el.textContent = me.settings.placeholder;
 					}
@@ -1209,7 +1224,7 @@
 					bText = me.settings.orderType === 'numeric' ? 0 : '';
 
 				if(me.settings.orderType === 'numeric'){
-					aText = Number(aText.replace(/[^\d\.]/g, '')) || 0,
+					aText = Number(aText.replace(/[^\d\.]/g, '')) || 0;
 					bText = Number(bText.replace(/[^\d\.]/g, '')) || 0;
 				}
 
@@ -1243,7 +1258,7 @@
 			Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
 				get: getter
 			});
-			return this['blobSelect'];
+			return this.blobSelect;
 		},
 		configurable: true
 	});
