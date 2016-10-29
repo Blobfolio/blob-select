@@ -1,12 +1,19 @@
 /**
 *
-* blobSelect
-* version: 1.0
-* home: https://blobfolio.com
+* blob-select
+* Version: 1.0
+*
+* Copyright © 2016 Blobfolio, LLC <https://blobfolio.com>
+* This work is free. You can redistribute it and/or modify
+* it under the terms of the Do What The Fuck You Want To
+* Public License, Version 2.
 *
 * use:
-*	<select data-blobselect="{OPTIONS}">
-*	select fields with the data-blobselect attribute are auto-initialized on load
+*	<select data-blobselect='{...}'>
+*	<select data-blobselect-order-type="string" ...>
+*	document.getElementById('my-select').blobSelect.init({...})
+*
+*	select fields with data-blobselect* attributes are auto-initialized on load
 *	select fields can be manually initialized with:
 *		document.getElementById('myselect').blobSelect.init()
 *
@@ -166,11 +173,12 @@
 	// @return extended
 	var _extend = function(defaults, overrides){
 		var extended = {};
-		_forEach(defaults, function (value, key){
-			extended[key] = defaults[key];
+		_forEach(defaults, function (v,k){
+			extended[k] = defaults[k];
 		});
-		_forEach(overrides, function (value, key){
-			extended[key] = overrides[key];
+		_forEach(overrides, function (v,k){
+			if(extended[k] !== undefined && v !== undefined && v !== null)
+				extended[k] = overrides[k];
 		});
 		return extended;
 	};
@@ -430,16 +438,32 @@
 		//-------------------------------------------------
 		// Init
 		//
-		// @param n/a
+		// @param settings args (optional)
 		// @return true/false
 
-		init: function(){
+		init: function(args){
 			//already initialized
 			if(this.initialized())
 				return this.debug('already initialized; aborting');
 
 			//sort out user settings
-			this.saveSettings(this.element.getAttribute('data-blobselect') || {});
+			if(!args){
+				//maybe a JSON string?
+				args = this.element.getAttribute('data-blobselect') || false;
+				if(!args){
+					//maybe individual settings?
+					args = {
+						"orderType" : this.element.getAttribute('data-blobselect-order-type') || null,
+						"order" : this.element.getAttribute('data-blobselect-order') || null,
+						"placeholder" : this.element.getAttribute('data-blobselect-placeholder') || null,
+						"placeholderOption" : this.element.getAttribute('data-blobselect-placeholder-option') || null,
+						"search" : this.element.getAttribute('data-blobselect-search') || null,
+						"watch" : this.element.getAttribute('data-blobselect-watch') || null,
+						"debug" : this.element.getAttribute('data-blobselect-debug') || null
+					};
+				}
+			}
+			this.saveSettings(args);
 
 			//build our wrapper
 			this.container = document.createElement('div');
@@ -512,7 +536,58 @@
 		},
 
 		//-------------------------------------------------
+		// Destroy
+		//
+		// this will try to restore the regular select
+		//
+		// @param n/a
+		// @return true
+		destroy: function(){
+			//already dead?
+			if(!this.initialized())
+				return this.debug('not initialized; aborting');
+
+			//clear the watch interval
+			if(this.watch)
+				clearInterval(this.watch);
+
+			//remove the search field
+			if(this.search)
+				_removeElement(this.search);
+
+			//items
+			_removeElement($$('.blobselect-item-group, .blobselect-item', this.items));
+
+			//move the select
+			this.container.parentNode.insertBefore(this.element, this.container);
+
+			//remove the container
+			_removeElement(this.container);
+
+			//reset variables
+			this.container = null;
+			this.selections = null;
+			this.button = null;
+			this.items = null;
+			this.search = null;
+			this.searchValue = null;
+			this.hash = null;
+			this.settings = {};
+			this.watch = null;
+			this.debounceQueue = {};
+			this.updateLock = false;
+
+			this.debug('natural <select> restored');
+
+			//done!
+			return true;
+		},
+
+		//-------------------------------------------------
 		// Set Settings
+		//
+		// @param settings
+		// @return n/a
 
 		saveSettings: function(userSettings){
 			userSettings = _parseJSON(userSettings);
@@ -1270,7 +1345,8 @@
 	//---------------------------------------------------------------------
 
 	document.addEventListener('DOMContentLoaded', function(){
-		_forEach($$('select[data-blobselect]'), function(select){
+		var matches = $$('select[data-blobselect], select[data-blobselect-watch], select[data-blobselect-search], select[data-blobselect-placeholder], select[data-blobselect-placeholder-option], select[data-blobselect-order], select[data-blobselect-order-type], select[data-blobselect-debug]');
+		_forEach(matches, function(select){
 			select.blobSelect.init();
 		});
 	});

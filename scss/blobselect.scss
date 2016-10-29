@@ -1,8 +1,7 @@
 //---------------------------------------------------------------------
-// blobSelect
+// blob-select
 //---------------------------------------------------------------------
 // https://blobfolio.com
-// some rights reserved
 
 
 
@@ -10,414 +9,235 @@
 //rendering of the dropdown menu itself on small
 //devices.  at 768+, we have enough space to
 //use our fake menu.
-$screen-tablet:	48em;	//768px
-
-
+$screen-tablet:	48em; //768px
 
 //some colors
-$color-white:	#fff;
-$color-pink-1:	#F25CA2;
-$color-pink-2:	#D93672;
-$color-pink-3:	#D9184B;
-$color-pink-4:	#BF0B2C;
-$color-pink-5:	#590209;
+$color-green: #2ecc71;
+$color-green-dark: #27ae60;
+$color-aqua: #1abc9c;
+$color-aqua-dark: #16a085;
+$color-purple: #8e44ad;
+$color-red: #c0392b;
+$color-white: #fff;
+$color-grey: #bdc3c7;
+$color-black: #2c3e50;
+
+//fonts (via Google Fonts)
+$font: 'Oxygen', sans-serif;
+
+//animations
+$transition-speed: .3s;
 
 
 
-//-------------------------------------------------
-// .blobselect
-//
-// this is the container that is thrown around the
-// original <select>
+//first, some quick style resets for clarity
+//in the main code.
+@import "_blobselect-reset.scss";
+body { padding: 20px; }
 
+
+
+//the main blobselect container
 .blobselect {
+	position: relative;
+	display: flex;
+	align-items: flex-center;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	cursor: pointer;
+	outline: none;
+	color: $color-black;
+	background-color: $color-white;
+	transition: background $transition-speed, color $transition-speed;
 
-	//help webkit browsers out with fancy effects
-	-webkit-backface-visibility: hidden;
-
-	display: block;
-	box-sizing: border-box;
 	width: 100%;
 	max-width: 300px;
-	position: relative;
+	border: 1px solid $color-green;
+	box-shadow: 0 0 0 3px $color-white,
+		0 0 0 4px $color-green-dark;
 	padding: 10px;
-	height: auto;
-	margin: 10px 0;
-	cursor: pointer;
-	font-family: sans-serif;
-	font-size: .8rem;
-	transition: all .25s ease;
-	color: $color-white;
-	background-color: $color-pink-1;
-	border-bottom: 10px solid $color-pink-3;
-	outline: none;
 
-	//the original <select>
+	//a neat trick, for small screens we can preserve
+	//the browser's dropdown functionality, which is
+	//probably better than what we could do with CSS
 	select {
-		box-sizing: border-box;
 		position: absolute;
 		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		-webkit-appearance: menulist-button;
-		-moz-appearance: menulist-button;
-		cursor: pointer;
+		left: -5px;
+		right: -5px;
+		bottom: -5px;
+		width: calc(100% + 10px);
+		height: calc(100% + 5px);
+		z-index: 1000;
 		opacity: 0;
 
-		//at tablet sizes, we want the <select> to
-		//be completely hidden, rather than sneakily
-		//invisible-but-clickable
-		@media(min-width: $screen-tablet){
-			display: none;
-		}
-	}
-	//never show the real <select> if multiple
-	&.is-multiple select {
-		display: none;
+		//for big screens, we don't really need this
+		//any more
+		@media(min-width: $screen-tablet){ display: none; }
 	}
 
-	//let's make a simple triangle button
-	&:after {
-		content: '';
-		position: absolute;
-		right: 10px;
-		transition: all .25s ease;
-		top: 50%;
-		transform: translateY(-50%);
-		width: 0;
-		height: 0;
-		border-style: solid;
-		border-width: 7px 5px 0 5px;
-		border-color: $color-pink-3 transparent transparent transparent;
-		pointer-events: none;
-	}
+	//space out our examples a little
+	& + .blobselect { margin-top: 20px; }
 
-	//jiggle the button on hover
-	&:hover,
-	&:focus,
-	&:active {
-		&:after {
-			margin-top: 2px;
-		}
-	}
-
-	//since we aren't taking over the dropdown menu on small screens,
-	//let's not confuse things by altering the selection area
-	@media(min-width: $screen-tablet){
-		&.is-open {
-
-			background-color: $color-pink-3;
-
-			//flip the button around
-			&:after {
-				border-color: $color-pink-1 transparent transparent transparent;
-				transform: translateY(-50%) rotate(-180deg);
-			}
-
-			//jiggle the button on hover, but in the other direction
-			&:hover,
-			&:focus,
-			&:active {
-				&:after {
-					margin-top: -2px;
-				}
-			}
-		}
-	}
-
-	//although, we want to alter it for multi-selects
-	&.is-multiple.is-open {
-
-		background-color: $color-pink-3;
-
-		//flip the button around
-		&:after {
-			border-color: $color-pink-1 transparent transparent transparent;
-			transform: translateY(-50%) rotate(-180deg);
-		}
-
-		//jiggle the button on hover, but in the other direction
-		&:hover,
-		&:focus,
-		&:active {
-			&:after {
-				margin-top: -2px;
-			}
-		}
+	&.is-open {
+		z-index: 1;
+		background-color: $color-aqua-dark;
+		border-color: $color-aqua-dark;
+		color: $color-white;
 	}
 }//.blobselect
 
 
 
-//-------------------------------------------------
-// .blobselect-selections
-//
-// this is a wrapper for the selection(s).  for
-// single <select>s, this will always be one thing,
-// but for [multiple] ones, it could be nothing or
-// several things.
-
+//our selections
 .blobselect-selections {
-	display: block;
-	box-sizing: border-box;
-	overflow: visible;
-	min-height: 15px;
-	width: 100%;
-	padding-right: 30px;	//our "arrow" is going to sit in the right corner
+	width: calc(100% - 40px);
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	flex-direction: column;
 	overflow: hidden;
-	pointer-events: none;
-}//.blobselect-selections
-
-
-
-//-------------------------------------------------
-// .blobselect-selection
-//
-// this is a single selection, to be found inside
-// .blobselect-selections
+	word-wrap: break-word;
+}
 
 .blobselect-selection {
-	display: block;
-	box-sizing: border-box;
-	overflow: hidden;
-	min-height: 15px;
-	line-height: 15px;
-	pointer-events: none;
+	padding: 5px 0;
 
-	& + .blobselect-selection {
-		margin-top: 5px;
-	}
-
-	//except, not mulitple
-	.is-multiple & + .blobselect-selection {
-		margin-top: 0;
-	}
-
-	//placeholder
 	&.is-placeholder {
-		text-transform: uppercase;
+		color: $color-grey;
 		font-style: italic;
-		font-size: .6rem;
 	}
 
-	//for multi-selects, clicking a selection cancels the selection
+	.is-open &.is-placeholder { color: $color-white; }
+
 	.is-multiple & {
-		pointer-events: auto;
-		display: inline-block;
-		margin-right: 20px;
-
-		//add a little X so the user knows what's up
 		&:after {
-			content: '×';
-			color: $color-pink-2;
-			margin-left: 5px;
-			vertical-align: top;
-			font-size: .6rem;
-			display: inline-block;
-			transition: all .25s ease;
-		}
-
-		//make the X change a bit on hover
-		&:hover {
-			&:after {
-				color: $color-pink-3;
-				font-size: .7rem;
-			}
-		}
-	}
-	//the colors change a bit when it is open, so make it look nicer
-	.is-multiple.is-open & {
-		&:after {
-			color: $color-pink-1;
+			content: '\00D7';
+			color: $color-red;
+			margin-left: .25em;
+			opacity: 0;
+			transition: opacity $transition-speed;
 		}
 		&:hover {
-			&:after {
-				color: $color-white;
-			}
+			&:after { opacity: 1; }
 		}
 	}
-}//.blobselect-selection
+}
 
 
 
-//-------------------------------------------------
-// .blobselect-items
-//
-// this is our fake dropdown menu
+//our submit button
+.blobselect-button {
+	width: 40px;
+	height: 40px;
+	cursor: pointer;
+	background-color: $color-green;
+	transition: all $transition-speed;
 
+	//this trick won't for for IE but is neat
+	-webkit-mask-image: url(../img/logo.svg);
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: 20px 40px;
+	-webkit-mask-position: center center;
+	mask-image: url(../img/logo.svg);
+
+	&:hover {
+		background-color: $color-aqua-dark;
+	}
+
+	.is-open & {
+		background-color: $color-white;
+		transform: rotate(180deg);
+	}
+}
+
+
+
+//our dropdown
 .blobselect-items {
-	box-sizing: border-box;
 	position: absolute;
 	top: 100%;
-	right: 0;
-	left: 0;
-	width: 100%;
+	left: -1px;
+	right: -1px;
+	width: calc(100% + 2px);
+	color: $color-black;
+	background-color: $color-white;
+	transition: background $transition-speed, color $transition-speed, transform $transition-speed;
+	border: 1px solid $color-green;
+	border-top: 0;
+	padding-bottom: 10px;
 	transform: scale(1, 0);
-	opacity: 0;
-	transform-origin: top right;
-	transition: all .25s ease;
-	background-color: $color-pink-1;
-	padding: 0;
-	margin: 0;
-	z-index: 2500;
-	max-height: 300px;
-	overflow-y: scroll;
-	outline: none;
-	font-size: .7rem;
+	transform-origin: top center;
 	display: none;
-	border-bottom: 10px solid $color-pink-3;
 
+	//we are only using our pseudo-dropdown on big screens
 	@media(min-width: $screen-tablet){
-		//this is a short-lived transition status to let you
-		//toggle display without mucking up animation
-		.is-opening & {
-			display: block;
-		}
+		.is-opening & { display: block; }
 		.is-open & {
 			display: block;
-			transform: scale(1);
-			opacity: 1;
+			z-index: 1000;
+			background-color: $color-aqua-dark;
+			border-color: $color-aqua-dark;
+			color: $color-white;
+			transform: scale(1, 1);
 		}
 	}
+}
 
-	//and always use the fancy menus for [multiple]
-	.is-multiple.is-opening & {
-		display: block;
-	}
-	.is-multiple.is-open & {
-		display: block;
-		transform: scale(1);
+//the search field
+.blobselect-item-search {
+	border-top: 1px dashed $color-white;
+	border-bottom: 1px dashed $color-white;
+	padding: 0 10px;
+	height: 30px;
+	line-height: 30px;
+	font-size: .7rem;
+	outline: none;
+	opacity: .75;
+	transition: opacity $transition-speed;
+	margin-bottom: 5px;
+
+	&:active,
+	&:focus,
+	&:hover {
 		opacity: 1;
 	}
-}//.blobselect-items
+}
 
-
-
-//-------------------------------------------------
-// .blobselect-item-group
-//
-// this is our representation of <optgroup>, to be
-// found inside .blobselect-items
-
+//an optgroup label
 .blobselect-item-group {
-	box-sizing: border-box;
-	padding: 10px;
-	margin: 0;
+	&:first-child { margin-top: 5px; }
 
+	font-size: .8rem;
 	text-transform: uppercase;
-	font-weight: bold;
-	color: $color-pink-2;
-}//.blobselect-item-group
-
-
-
-//-------------------------------------------------
-// .blobselect-item
-//
-// this is our fake <option>, to be found in
-// .blobselect-items
-
-.blobselect-item {
-	box-sizing: border-box;
+	font-weight: 700;
 	padding: 10px;
-	margin: 0;
-	transition: all .25s ease;
-	background-color: $color-pink-1;
+	outline: none;
+}
+
+//dropdown items
+.blobselect-item {
+	font-size: .8rem;
+	text-transform: uppercase;
+	padding: 10px;
 	outline: none;
 
-	//an item in an optgroup
-	&.has-group {
-		padding-left: 30px;
+	&.has-group { padding-left: 30px; }
+
+	&.is-disabled { opacity: .5; }
+
+	&.is-not-match { display: none; }
+
+	&.is-placeholder { font-style: italic; }
+
+	mark {
+		border-bottom: 2px solid $color-purple;
+		background: transparent;
+		color: inherit;
 	}
 
 	&:hover,
-	&:active,
-	&:focus {
-		background-color: $color-pink-2;
-	}
+	&.is-focused { background-color: rgba($color-aqua, .75); }
 
-	//active
-	&.is-active {
-		background-color: $color-pink-2;
-		font-weight: bold;
-	}
-
-	//is this a placeholder item?
-	&.is-placeholder {
-		font-style: italic;
-		text-transform: uppercase;
-		font-size: .6rem;
-	}
-
-	&.is-disabled {
-		opacity: .5;
-	}
-
-	//items that do not match the search
-	&.is-not-match {
-		display: none;
-	}
-
-	//selected portions
-	mark {
-		border-bottom: 2px solid $color-pink-3;
-		background-color: transparent;
-		font: inherit;
-		color: inherit;
-	}
-}//.blobselect-item
-
-
-
-//-------------------------------------------------
-// .blobselect-search
-//
-// the actual search field
-.blobselect-item-search {
-	box-sizing: border-box;
-	width: 100%;
-	height: 30px;
-	border: 0;
-	border-top: 1px dashed $color-pink-2;
-	background-color: $color-pink-3;
-	color: $color-white;
-	outline: none;
-	padding: 0 0 0 10px;
-	margin: 0;
-	vertical-align: middle;
-	font-family: sans;
-	font-size: .8rem;
-	line-height: 29px;
-
-	&::-webkit-input-placeholder {
-		font: inherit;
-		color: inherit;
-		font-style: italic;
-		line-height: 29px;
-		vertical-align: middle;
-	}
-	&:-moz-placeholder { /* Firefox 18- */
-		font: inherit;
-		color: inherit;
-		font-style: italic;
-		line-height: 29px;
-		vertical-align: middle;
-		opacity: 1;
-	}
-	&::-moz-placeholder {  /* Firefox 19+ */
-		font: inherit;
-		color: inherit;
-		font-style: italic;
-		line-height: 29px;
-		vertical-align: middle;
-		opacity: 1;
-	}
-	&:-ms-input-placeholder {
-		font: inherit;
-		color: inherit;
-		font-style: italic;
-		line-height: 29px;
-		vertical-align: middle;
-	}
-}//.blobselect-search
+	&.is-active { background-color: $color-aqua; }
+}
