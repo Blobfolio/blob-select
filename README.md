@@ -55,7 +55,7 @@ Download `dist/js/blobselect.min.js` and add it to your project folder, and incl
 
 Or via Composer:
 ```bash
-composer require "Blobfolio/blob-select:dev-master"
+composer require "blobfolio/blob-select:dev-master"
 ```
 
 Or via Bower:
