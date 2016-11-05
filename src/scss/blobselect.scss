@@ -2,6 +2,8 @@
 // blob-select
 //---------------------------------------------------------------------
 // https://blobfolio.com
+//
+// default styles
 
 
 
@@ -12,28 +14,16 @@
 $screen-tablet:	48em; //768px
 
 //some colors
-$color-green: #2ecc71;
-$color-green-dark: #27ae60;
-$color-aqua: #1abc9c;
-$color-aqua-dark: #16a085;
+$color-blue: #3498db;
+$color-blue-dark: #2980b9;
 $color-purple: #8e44ad;
 $color-red: #c0392b;
 $color-white: #fff;
 $color-grey: #bdc3c7;
 $color-black: #2c3e50;
 
-//fonts (via Google Fonts)
-$font: 'Oxygen', sans-serif;
-
 //animations
 $transition-speed: .3s;
-
-
-
-//first, some quick style resets for clarity
-//in the main code.
-@import "_blobselect-reset.scss";
-body { padding: 20px; }
 
 
 
@@ -48,14 +38,16 @@ body { padding: 20px; }
 	outline: none;
 	color: $color-black;
 	background-color: $color-white;
-	transition: background $transition-speed, color $transition-speed;
+	transition: background $transition-speed, color $transition-speed, border $transition-speed;
 
 	width: 100%;
 	max-width: 300px;
-	border: 1px solid $color-green;
-	box-shadow: 0 0 0 3px $color-white,
-		0 0 0 4px $color-green-dark;
+	border: 1px solid $color-grey;
 	padding: 10px;
+	box-sizing: border-box;
+
+	//force everything in here to use border-box
+	* { box-sizing: border-box; }
 
 	//a neat trick, for small screens we can preserve
 	//the browser's dropdown functionality, which is
@@ -76,14 +68,13 @@ body { padding: 20px; }
 		@media(min-width: $screen-tablet){ display: none; }
 	}
 
-	//space out our examples a little
-	& + .blobselect { margin-top: 20px; }
+	&:focus,
+	&:active,
+	&:hover { border-color: $color-black; }
 
 	&.is-open {
 		z-index: 1;
-		background-color: $color-aqua-dark;
-		border-color: $color-aqua-dark;
-		color: $color-white;
+		border-color: $color-blue-dark;
 	}
 }//.blobselect
 
@@ -91,7 +82,7 @@ body { padding: 20px; }
 
 //our selections
 .blobselect-selections {
-	width: calc(100% - 40px);
+	width: calc(100% - 35px);
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
@@ -107,8 +98,6 @@ body { padding: 20px; }
 		color: $color-grey;
 		font-style: italic;
 	}
-
-	.is-open &.is-placeholder { color: $color-white; }
 
 	.is-multiple & {
 		&:after {
@@ -128,26 +117,36 @@ body { padding: 20px; }
 
 //our submit button
 .blobselect-button {
-	width: 40px;
-	height: 40px;
+	width: 35px;
+	height: 30px;
 	cursor: pointer;
-	background-color: $color-green;
 	transition: all $transition-speed;
+	position: relative;
 
-	//this trick won't for for IE but is neat
-	-webkit-mask-image: url(../img/logo.svg);
-	-webkit-mask-repeat: no-repeat;
-	-webkit-mask-size: 20px 40px;
-	-webkit-mask-position: center center;
-	mask-image: url(../img/logo.svg);
-
-	&:hover {
-		background-color: $color-aqua-dark;
+	&:after {
+		content: '';
+		width: 0;
+		height: 0;
+		border-style: solid;
+		border-width: 10px 7.5px 0 7.5px;
+		border-color: $color-grey transparent transparent transparent;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		margin-top: -5px;
+		margin-left: -7.5px;
+		transition: border $transition-speed;
 	}
 
-	.is-open & {
-		background-color: $color-white;
+	.blobselect:active &:after,
+	.blobselect:focus &:after,
+	.blobselect:hover &:after {
+		border-color: $color-black transparent transparent transparent;
+	}
+
+	.blobselect.is-open & {
 		transform: rotate(180deg);
+		&:after { border-color: $color-blue-dark transparent transparent transparent; }
 	}
 }
 
@@ -163,7 +162,7 @@ body { padding: 20px; }
 	color: $color-black;
 	background-color: $color-white;
 	transition: background $transition-speed, color $transition-speed, transform $transition-speed;
-	border: 1px solid $color-green;
+	border: 1px solid $color-grey;
 	border-top: 0;
 	padding-bottom: 10px;
 	transform: scale(1, 0);
@@ -176,9 +175,7 @@ body { padding: 20px; }
 		.is-open & {
 			display: block;
 			z-index: 1000;
-			background-color: $color-aqua-dark;
-			border-color: $color-aqua-dark;
-			color: $color-white;
+			border-color: $color-blue-dark;
 			transform: scale(1, 1);
 		}
 	}
@@ -186,16 +183,18 @@ body { padding: 20px; }
 
 //the search field
 .blobselect-item-search {
-	border-top: 1px dashed $color-white;
-	border-bottom: 1px dashed $color-white;
-	padding: 0 10px;
-	height: 30px;
-	line-height: 30px;
-	font-size: .7rem;
+	border-top: 1px dashed $color-blue-dark;
+	border-bottom: 1px dashed $color-blue-dark;
+	padding: 0 10px 0 35px;
+	height: 35px;
+	line-height: 35px;
+	font-size: .8rem;
 	outline: none;
 	opacity: .75;
 	transition: opacity $transition-speed;
 	margin-bottom: 5px;
+	background: transparent url(../img/search.svg) scroll 10px 10px no-repeat;
+	background-size: 15px 15px;
 
 	&:active,
 	&:focus,
@@ -206,7 +205,9 @@ body { padding: 20px; }
 
 //an optgroup label
 .blobselect-item-group {
-	&:first-child { margin-top: 5px; }
+	&:first-child {
+		border-top: 1px dashed $color-blue-dark;
+	}
 
 	font-size: .8rem;
 	text-transform: uppercase;
@@ -217,10 +218,15 @@ body { padding: 20px; }
 
 //dropdown items
 .blobselect-item {
+	&:first-child {
+		border-top: 1px dashed $color-blue-dark;
+	}
+
 	font-size: .8rem;
 	text-transform: uppercase;
 	padding: 10px;
 	outline: none;
+	transition: background $transition-speed, color $transition-speed;
 
 	&.has-group { padding-left: 30px; }
 
@@ -237,7 +243,13 @@ body { padding: 20px; }
 	}
 
 	&:hover,
-	&.is-focused { background-color: rgba($color-aqua, .75); }
+	&.is-focused {
+		background-color: $color-blue;
+		color: $color-white;
+	}
 
-	&.is-active { background-color: $color-aqua; }
+	&.is-active {
+		background-color: $color-blue-dark;
+		color: $color-white;
+	}
 }

@@ -1,0 +1,235 @@
+//---------------------------------------------------------------------
+// blob-select
+//---------------------------------------------------------------------
+// https://blobfolio.com
+//
+// silly blobfolio styles
+
+
+
+//in this example CSS, we defer to the browser's
+//rendering of the dropdown menu itself on small
+//devices.  at 768+, we have enough space to
+//use our fake menu.
+$screen-tablet:	48em; //768px
+
+//some colors
+$color-green: #2ecc71;
+$color-green-dark: #27ae60;
+$color-aqua: #1abc9c;
+$color-aqua-dark: #16a085;
+$color-purple: #8e44ad;
+$color-red: #c0392b;
+$color-white: #fff;
+$color-grey: #bdc3c7;
+$color-black: #2c3e50;
+
+//fonts (via Google Fonts)
+$font: 'Oxygen', sans-serif;
+
+//animations
+$transition-speed: .3s;
+
+
+
+//the main blobselect container
+.blobselect {
+	position: relative;
+	display: flex;
+	align-items: flex-center;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	cursor: pointer;
+	outline: none;
+	color: $color-black;
+	background-color: $color-white;
+	transition: background $transition-speed, color $transition-speed;
+
+	width: 100%;
+	max-width: 300px;
+	border: 1px solid $color-green;
+	box-shadow: 0 0 0 3px $color-white,
+		0 0 0 4px $color-green-dark;
+	padding: 10px;
+
+	//a neat trick, for small screens we can preserve
+	//the browser's dropdown functionality, which is
+	//probably better than what we could do with CSS
+	select {
+		position: absolute;
+		top: 0;
+		left: -5px;
+		right: -5px;
+		bottom: -5px;
+		width: calc(100% + 10px);
+		height: calc(100% + 5px);
+		z-index: 1000;
+		opacity: 0;
+
+		//for big screens, we don't really need this
+		//any more
+		@media(min-width: $screen-tablet){ display: none; }
+	}
+
+	&.is-open {
+		z-index: 1;
+		background-color: $color-aqua-dark;
+		border-color: $color-aqua-dark;
+		color: $color-white;
+	}
+}//.blobselect
+
+
+
+//our selections
+.blobselect-selections {
+	width: calc(100% - 40px);
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	flex-direction: column;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+
+.blobselect-selection {
+	padding: 5px 0;
+
+	&.is-placeholder {
+		color: $color-grey;
+		font-style: italic;
+	}
+
+	.is-open &.is-placeholder { color: $color-white; }
+
+	.is-multiple & {
+		&:after {
+			content: '\00D7';
+			color: $color-red;
+			margin-left: .25em;
+			opacity: 0;
+			transition: opacity $transition-speed;
+		}
+		&:hover {
+			&:after { opacity: 1; }
+		}
+	}
+}
+
+
+
+//our submit button
+.blobselect-button {
+	width: 40px;
+	height: 40px;
+	cursor: pointer;
+	background-color: $color-green;
+	transition: all $transition-speed;
+
+	//this trick won't for for IE but is neat
+	-webkit-mask-image: url(../img/logo.svg);
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: 20px 40px;
+	-webkit-mask-position: center center;
+	mask-image: url(../img/logo.svg);
+
+	&:hover {
+		background-color: $color-aqua-dark;
+	}
+
+	.is-open & {
+		background-color: $color-white;
+		transform: rotate(180deg);
+	}
+}
+
+
+
+//our dropdown
+.blobselect-items {
+	position: absolute;
+	top: 100%;
+	left: -1px;
+	right: -1px;
+	width: calc(100% + 2px);
+	color: $color-black;
+	background-color: $color-white;
+	transition: background $transition-speed, color $transition-speed, transform $transition-speed;
+	border: 1px solid $color-green;
+	border-top: 0;
+	padding-bottom: 10px;
+	transform: scale(1, 0);
+	transform-origin: top center;
+	display: none;
+
+	//we are only using our pseudo-dropdown on big screens
+	@media(min-width: $screen-tablet){
+		.is-opening & { display: block; }
+		.is-open & {
+			display: block;
+			z-index: 1000;
+			background-color: $color-aqua-dark;
+			border-color: $color-aqua-dark;
+			color: $color-white;
+			transform: scale(1, 1);
+		}
+	}
+}
+
+//the search field
+.blobselect-item-search {
+	border-top: 1px dashed $color-white;
+	border-bottom: 1px dashed $color-white;
+	padding: 0 10px;
+	height: 30px;
+	line-height: 30px;
+	font-size: .7rem;
+	outline: none;
+	opacity: .75;
+	transition: opacity $transition-speed;
+	margin-bottom: 5px;
+
+	&:active,
+	&:focus,
+	&:hover {
+		opacity: 1;
+	}
+}
+
+//an optgroup label
+.blobselect-item-group {
+	&:first-child { margin-top: 5px; }
+
+	font-size: .8rem;
+	text-transform: uppercase;
+	font-weight: 700;
+	padding: 10px;
+	outline: none;
+}
+
+//dropdown items
+.blobselect-item {
+	font-size: .8rem;
+	text-transform: uppercase;
+	padding: 10px;
+	outline: none;
+
+	&.has-group { padding-left: 30px; }
+
+	&.is-disabled { opacity: .5; }
+
+	&.is-not-match { display: none; }
+
+	&.is-placeholder { font-style: italic; }
+
+	mark {
+		border-bottom: 2px solid $color-purple;
+		background: transparent;
+		color: inherit;
+	}
+
+	&:hover,
+	&.is-focused { background-color: rgba($color-aqua, .75); }
+
+	&.is-active { background-color: $color-aqua; }
+}

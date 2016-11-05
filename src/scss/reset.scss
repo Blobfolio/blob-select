@@ -1,10 +1,12 @@
 //---------------------------------------------------------------------
 // Reset Styles
 //
+// Uses:
 // http://meyerweb.com/eric/tools/css/reset/
 // v2.0 | 20110126
 // License: none (public domain)
 //---------------------------------------------------------------------
+// This is only necessary for the demo.
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -31,12 +33,13 @@ button, input {
 html { height: 100%; }
 body {
 	height: 100%;
-	background-color: $color-white;
+	background-color: #fff;
 	line-height: 1;
-	font-family: $font;
+	font-family: 'Oxygen', sans-serif;
 	font-weight: normal;
 	font-style: normal;
 	letter-spacing: .125em;
+	padding: 20px;
 
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
@@ -45,3 +48,14 @@ body {
 a { cursor: pointer; }
 
 * { box-sizing: border-box; }
+
+label {
+	display: block;
+	color: #8e44ad;
+	font-weight: 700;
+	font-size: .75rem;
+	margin-bottom: 10px;
+}
+.blobselect + label {
+	margin-top: 40px;
+}

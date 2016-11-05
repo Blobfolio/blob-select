@@ -9,6 +9,7 @@
     "grunt-contrib-watch": "*",
     "grunt-notify": "*",
     "grunt-postcss": "*",
-    "grunt-sass": "*"
+    "grunt-sass": "*",
+    "postcss-fixes": "*"
   }
 }

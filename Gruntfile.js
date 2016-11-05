@@ -6,33 +6,43 @@ module.exports = function(grunt) {
 		//Metadata.
 		pkg: grunt.file.readJSON('package.json'),
 
-		//CSS
+		//SCSS
 		sass: {
 			dist: {
 				options: {
 					style: 'compressed'
 				},
 				files: {
-					'css/blobselect.css': 'scss/blobselect.scss'
+					'dist/css/blobselect.css': 'src/scss/blobselect.scss',
+					'dist/css/blobfolio.css': 'src/scss/blobfolio.scss',
+					'dist/css/reset.css': 'src/scss/reset.scss'
 				}
 			}
 		},
 
+		//CSS PROCESSING
 		postcss: {
 			options: {
+				map: true,
 				processors: [
-					require('cssnano')()
+					require('postcss-fixes')(),
+					require('autoprefixer')( { browsers: 'last 3 versions' } ), // vendor prefixes
+					require('cssnano')({
+						safe: true,
+						calc: false,
+						zindex : false
+					})
 				]
 			},
 
 			dist: {
-				src: 'css/*.css'
+				src: 'dist/css/*.css'
 			}
 		},
 
 		//JAVASCRIPT
 		jshint: {
-			all: ['js/blobselect.js']
+			all: ['src/js/blobselect.js']
 		},
 
 		uglify: {
@@ -41,7 +51,7 @@ module.exports = function(grunt) {
 			},
 			my_target: {
 				files: {
-					'js/blobselect.min.js': ['js/blobselect.js']
+					'dist/js/blobselect.min.js': ['src/js/blobselect.js']
 				}
 			}
 		},
@@ -49,7 +59,7 @@ module.exports = function(grunt) {
 		//WATCH
 		watch: {
 			styles: {
-				files: ['scss/*.scss', 'css/*.css'],
+				files: ['src/scss/*.scss', 'dist/css/*.css'],
 				tasks: ['css', 'notify:css'],
 				options: {
 					spawn: false
@@ -57,7 +67,7 @@ module.exports = function(grunt) {
 			},
 
 			scripts: {
-				files: ['js/*.js'],
+				files: ['src/js/*.js'],
 				tasks: ['javascript', 'notify:js'],
 				options: {
 					spawn: false

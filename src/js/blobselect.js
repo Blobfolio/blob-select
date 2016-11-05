@@ -378,7 +378,8 @@
 		"placeholder" : "---",			//text to use if selection has no label
 		"placeholderOption" : "---",	//text to use if option has no label
 		"search" : false,				//create an input field to filter results
-		"watch" : 0
+		"watch" : 0,					//watch for changes that don't come from change event
+		"debug" : false					//enable debugging
 	};
 
 
