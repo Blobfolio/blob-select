@@ -1,8 +1,32 @@
 {
-    "name": "Blobfolio/blob-select",
-    "version": "1.0",
-    "dist": {
-        "url": "http://www.smarty.net/files/Smarty-3.1.7.zip",
-        "type": "zip"
-    }
+    "name": "blobfolio/blob-select",
+    "description": "A dependency-free Javascript plugin for styling SELECT elements with an emphasis on markup simplicity and performance.",
+    "type": "component",
+    "homepage": "https://github.com/Blobfolio/blob-select",
+    "license": "WTFPL",
+    "authors": [
+        {
+            "name": "Josh Stoik",
+            "email": "josh@blobfolio.com",
+            "homepage": "https://blobfolio.com"
+        }
+    ],
+    "require": {
+    	"robloach/component-installer": "*"
+	},
+	"extra": {
+		"component": {
+			"scripts": [
+				"dist/js/blobselect.min.js"
+			],
+			"styles": [
+				"dist/css/blobselect.css"
+			],
+			"files": [
+				"dist/img/search.svg",
+				"dist/js/blobselect.min.js",
+				"dist/css/blobselect.css"
+			]
+		}
+	}
 }
