@@ -47,7 +47,7 @@ Broadly, this means all modern browsers are supported, and IE 10+. If these requ
 
 ### Installation
 
-Download `blobselect.min.js` and add it to your project folder, and include it somewhere on the page.
+Download `dist/js/blobselect.min.js` and add it to your project folder, and include it somewhere on the page.
 
 ```html
 <script src="/path/to/blobselect.min.js"></script>
@@ -56,6 +56,11 @@ Download `blobselect.min.js` and add it to your project folder, and include it s
 Or via Composer:
 ```bash
 composer require "Blobfolio/blob-select:dev-master"
+```
+
+Or via Bower:
+```bash
+bower install blob-select
 ```
 
 
