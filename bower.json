@@ -1,6 +1,6 @@
 {
   "name": "blob-select",
-  "main": "dist/js/blobselect.min.js",
+  "main": "src/js/blobselect.js",
   "version": "1.0",
   "homepage": "https://github.com/Blobfolio/blob-select",
   "authors": [
@@ -9,7 +9,9 @@
   "description": "A dependency-free Javascript plugin for styling SELECT elements with an emphasis on markup simplicity and performance.",
   "license": "WTFPL",
   "ignore": [
-    "src/",
+    "dist/",
+    "src/img",
+    "src/scss",
     "demo/",
     "composer.json",
     "component.json",
