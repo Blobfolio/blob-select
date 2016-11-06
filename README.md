@@ -134,7 +134,7 @@ blob-select will automatically initialize any `<select>` elements on `DOMContent
 document.getElementById('my-select').blobSelect.init({...});
 
 //jQuery example
-$('my-select')[0].blobSelect.init({...});
+$('#my-select')[0].blobSelect.init({...});
 ```
 
 
