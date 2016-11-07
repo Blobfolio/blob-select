@@ -17,7 +17,9 @@
     "component.json",
     "README.md",
     "LICENSE",
-    ".gitignore"
+    ".gitignore",
+    "Gruntfile.js",
+    "package.json"
   ],
   "repository": {
     "type": "git",
