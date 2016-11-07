@@ -933,7 +933,7 @@
 			e.stopPropagation();
 
 			//don't do anything if disabled
-			if(this.classList.contains('is-disabled')){
+			if(this.container.classList.contains('is-disabled')){
 				this.debug('click ignored; field is disabled');
 				if(this.isOpen())
 					return this.close();
