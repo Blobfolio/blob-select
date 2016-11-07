@@ -1,0 +1,15 @@
+{
+  "name": "blob-select",
+  "devDependencies": {
+    "cssnano": "*",
+    "grunt": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-sass": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-notify": "*",
+    "grunt-postcss": "*",
+    "grunt-sass": "*",
+    "postcss-fixes": "*"
+  }
+}
