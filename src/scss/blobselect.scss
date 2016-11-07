@@ -76,6 +76,13 @@ $transition-speed: .3s;
 		z-index: 1;
 		border-color: $color-blue-dark;
 	}
+
+	//disabled styles
+	&.is-disabled {
+		color: $color-grey!important;
+		border-color: $color-grey!important;
+		cursor: auto;
+	}
 }//.blobselect
 
 
@@ -148,6 +155,8 @@ $transition-speed: .3s;
 		transform: rotate(180deg);
 		&:after { border-color: $color-blue-dark transparent transparent transparent; }
 	}
+
+	.is-disabled &:after { border-color: $color-grey transparent transparent transparent !important; }
 }
 
 
@@ -214,6 +223,8 @@ $transition-speed: .3s;
 	font-weight: 700;
 	padding: 10px;
 	outline: none;
+
+	&.is-disabled { opacity: .5; }
 }
 
 //dropdown items
