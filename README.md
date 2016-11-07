@@ -22,6 +22,8 @@ A dependency-free Javascript plugin for styling `<select>` elements with an emph
 
 blob-select has feature parity with the standard `<select>`, `<option>`, and `<optgroup>` attributes, including:
 * `<select multiple=multiple>`
+* `<select disabled=disabled>`
+* `<optgroup disabled=disabled>`
 * `<option disabled=disabled>`
 
 blob-select additionally provides support for:
@@ -160,6 +162,7 @@ The HTML structure is as follows:
 .is-multiple: if the select allows multiple values
 .is-open: if the dropdown is open
 .is-opening: a transitional class to allow you to e.g. animate from display: none
+.is-disabled: if the select has the disabled attribute
 -->
 <div class="blobselect">
 
@@ -199,7 +202,7 @@ The HTML structure is as follows:
         .blobselect-item: an option
         .is-active: if the option is selected
         .is-placeholder: if the option is a placeholder
-        .is-disabled: if the option is disabled
+        .is-disabled: if the option (or its optgroup parent) has the disabled attribute
         .is-focused: if the option has focus via e.g. keyboard navigation
         .has-group: if the option is part of an optgroup
         .is-match: if "search"=true and this option matches the search
@@ -210,7 +213,10 @@ The HTML structure is as follows:
         -->
         <div class="blobselect-item" data-value="option value" data-label="Option Label">Option Label</div>
         
-        <!-- .blobselect-item-group: an optgroup -->
+        <!--
+        .blobselect-item-group: an optgroup
+        .is-disabled: if the optgroup has the disabled attribute
+        -->
         <div class="blobselect-item-group">Fruit</div>
     </div>
 </div>

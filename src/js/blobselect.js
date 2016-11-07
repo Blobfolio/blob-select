@@ -1,7 +1,7 @@
 /**
 *
 * blob-select
-* Version: 1.0
+* Version: 1.1.0
 *
 * Copyright © 2016 Blobfolio, LLC <https://blobfolio.com>
 * This work is free. You can redistribute it and/or modify
@@ -676,8 +676,19 @@
 			return this.debounce(
 				'updateBuild',
 				function(){
-					var h = me.getHash();
+					var h = me.getHash(),
+						disabled = me.element.disabled;
 					me.debug('checking for updates');
+
+					//while we're here, update the blob-select
+					//container's disabled status to match the
+					//element's
+					if(disabled)
+						me.container.classList.add('is-disabled');
+					else
+						me.container.classList.remove('is-disabled');
+
+					//double-check options
 					if(force || h !== me.hash){
 						me.debug('updates found');
 						me.hash = h;
@@ -789,6 +800,8 @@
 				//an option group
 				if(o.tagName === 'OPTGROUP'){
 					el.classList.add('blobselect-item-group');
+					if(o.disabled)
+						el.classList.add('is-disabled');
 					el.textContent = _sanitizeWhitespace(o.label);
 				}
 				//an option
@@ -806,7 +819,7 @@
 					if(o.parentNode.tagName === 'OPTGROUP')
 						el.classList.add('has-group');
 
-					if(o.disabled)
+					if(o.disabled || (o.parentNode.tagName === 'OPTGROUP') && o.parentNode.disabled)
 						el.classList.add('is-disabled');
 
 					el.setAttribute('data-value', o.value);
@@ -918,6 +931,15 @@
 
 		containerClick: function(e){
 			e.stopPropagation();
+
+			//don't do anything if disabled
+			if(this.classList.contains('is-disabled')){
+				this.debug('click ignored; field is disabled');
+				if(this.isOpen())
+					return this.close();
+				else
+					return;
+			}
 
 			this.debug('clicked');
 
