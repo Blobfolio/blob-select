@@ -1,7 +1,7 @@
 /**
 *
 * blob-select
-* Version: 1.1.0
+* Version: 1.1.1
 *
 * Copyright © 2016 Blobfolio, LLC <https://blobfolio.com>
 * This work is free. You can redistribute it and/or modify
@@ -1145,7 +1145,6 @@
 				return true;
 
 			this.container.classList.remove('is-open', 'is-opening');
-			this.container.focus();
 			this.items.setAttribute('data-focused', -1);
 
 			this.debug('dropdown closed');
