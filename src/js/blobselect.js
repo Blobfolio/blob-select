@@ -80,6 +80,8 @@
 			};
 	}
 
+	var selectors = [':disabled',':required',':valid',':invalid'];
+
 	//-------------------------------------------------
 	//JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
 	//
@@ -688,6 +690,21 @@
 					else
 						me.container.classList.remove('is-disabled');
 
+					//check fancy CSS selectors
+					_forEach(selectors, function(s){
+						var hasIt = me.container.hasAttribute(s),
+							matches = me.element.matches(s);
+
+						if(!hasIt && matches){
+							me.container.setAttribute(s, true);
+							me.container[s] = true;
+						}
+						else if(hasIt && !matches){
+							me.container.removeAttribute(s);
+							me.container[s] = false;
+						}
+					});
+
 					//double-check options
 					if(force || h !== me.hash){
 						me.debug('updates found');
@@ -708,8 +725,17 @@
 			if(!this.initialized())
 				return false;
 
-			var h = [];
+			var h = [],
+				attr = {},
+				me = this;
 
+			//first, let's do the select's state attributes
+			_forEach(selectors, function(s){
+				attr[s] = me.element.matches(s);
+			});
+			h.push(attr);
+
+			//and options
 			_forEach($$('option, optgroup', this.element), function(o){
 				h.push({
 					value : o.value,
