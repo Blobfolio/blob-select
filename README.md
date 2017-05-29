@@ -9,10 +9,10 @@ A dependency-free Javascript plugin for styling `<select>` elements with an emph
 1. [Features](#features)
 2. [Requirements](#requirements)
 3. [Use](#use)
-  * [Installation](#installation)
-  * [Configuration](#configuration)
-  * [Initialization](#initialization)
-  * [Destruction](#destruction)
+   * [Installation](#installation)
+   * [Configuration](#configuration)
+   * [Initialization](#initialization)
+   * [Destruction](#destruction)
 4. [Styling](#styling)
 5. [License](#license)
 
@@ -96,35 +96,16 @@ format like: data-blobselect-{de-camelCased property name}
 
 The following settings are available:
 
-> (*string*) **orderType**
-> To have blob-select sort your `<option>`s, use *"string"* or *"numeric"* (according to the kind of data you're presenting). Otherwise, with the exception of "placeholders" (which always bubble to the top), ordering will be left alone.
-> Default: *null*
+| Type     | Key               | Default | Description |
+| -------- | ----------------- | ------- | ----------- |
+| *string* | **orderType** | `""` | How to compare option labels for sorting; either `"string"`, `"numeric"`, or empty to not sort. |
+| *string* | **order** | `"asc"` | Sort order (if **orderType** is specified); `"asc"` or `"desc"`. |
+| *string* | **placeholder** | `"---"` | Selected text to display when a "placeholder" `<option>` is selected. Placeholderness is `TRUE` when an `<option>` has no label or has an attribute `data-placeholder="1"`.
+| *string* | **placeholderOption** | `"---"` | Same as above, except this text is used only for the dropdown listing. If omitted, the *placeholder* setting will supply both. |
+| *bool* | **search** | `FALSE` | Whether or not to display a simple search field in the dropdown. The search field itself is a contentEditable `<div>` so as not to screw up your real `<form>`.
+| *int* | **watch** | `0` | This forces `blob-select` to re-check for changes to its element every *X* milliseconds. This option is useful when other scripts might manipulate the element without firing a `change` event. Otherwise, leave this disabled to spare the unnecessary overhead. |
+| *bool* | **debug** | `FALSE` | Log operational information to the console.log(). |
 
-> (*string*) **order**
-> This option determines the sort order, either *"asc"* or *"desc"*. If *orderType* is not set, this option is ignored.
-> Default: *"asc"*
-
-> (*string*) **placeholder**
-> This option overrides the text displayed when a "placeholder" `<option>` is selected. Any `<option>` without a label or with the attribute `data-placeholder="1"` is considered a "placeholder".
-> Default: *"---"*
-
-> (*string*) **placeholderOption**
-> This works just like *placeholder*, but overrides the text displayed in the dropdown. If omitted, the *placeholder* setting will supply both.
-> Default: *"---"*
-
-> (*bool*) **search**
-> To add a simple search field to the dropdown, set this value to *true*.
-> Note: so as not to screw up your `<form>`, the search field is actually a contenteditable `<div>`.
-> Default: *false*
-
-> (*int*) **watch**
-> This option will cause blob-select to manually re-examine your `<select>` element every *X* milliseconds to see if something has changed (and redraw itself as necessary).
-> Note: this option should only be used in situations where element state changes are happening in hacky ways (like with AngularJS models). So long as outside scripts fire a `change` event, this is not needed.
-> Default: *0* (i.e. disabled)
-
-> (*bool*) **debug**
-> When *true*, a lot of operational information is dumped to the console.log().
-> Default: *false*
 
 
 ### Initialization
@@ -228,14 +209,14 @@ The SCSS project folder includes example styles that might provide some inspirat
 
 ## License
 
-Copyright © 2016 [Blobfolio, LLC](https://blobfolio.com) &lt;hello@blobfolio.com&gt;
+Copyright © 2017 [Blobfolio, LLC](https://blobfolio.com) &lt;hello@blobfolio.com&gt;
 
 This work is free. You can redistribute it and/or modify it under the terms of the Do What The Fuck You Want To Public License, Version 2.
 
     DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
     Version 2, December 2004
     
-    Copyright (C) 2016 Sam Hocevar <sam@hocevar.net>
+    Copyright (C) 2017 Sam Hocevar <sam@hocevar.net>
     
     Everyone is permitted to copy and distribute verbatim or modified
     copies of this license document, and changing it is allowed as long
