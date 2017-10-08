@@ -1,9 +1,9 @@
 /**
 *
 * blob-select
-* Version: 1.1.1
+* Version: 1.1.2
 *
-* Copyright © 2016 Blobfolio, LLC <https://blobfolio.com>
+* Copyright © 2017 Blobfolio, LLC <https://blobfolio.com>
 * This work is free. You can redistribute it and/or modify
 * it under the terms of the Do What The Fuck You Want To
 * Public License, Version 2.
@@ -452,17 +452,17 @@
 			//sort out user settings
 			if(!args){
 				//maybe a JSON string?
-				args = this.element.getAttribute('data-blobselect') || false;
+				args = this.element.dataset.blobselect || false;
 				if(!args){
 					//maybe individual settings?
 					args = {
-						"orderType" : this.element.getAttribute('data-blobselect-order-type') || null,
-						"order" : this.element.getAttribute('data-blobselect-order') || null,
-						"placeholder" : this.element.getAttribute('data-blobselect-placeholder') || null,
-						"placeholderOption" : this.element.getAttribute('data-blobselect-placeholder-option') || null,
-						"search" : this.element.getAttribute('data-blobselect-search') || null,
-						"watch" : this.element.getAttribute('data-blobselect-watch') || null,
-						"debug" : this.element.getAttribute('data-blobselect-debug') || null
+						"orderType" : this.element.dataset.blobselectOrderType || null,
+						"order" : this.element.dataset.blobselectOrder || null,
+						"placeholder" : this.element.dataset.blobselectPlaceholder || null,
+						"placeholderOption" : this.element.dataset.blobselectPlaceholderOption || null,
+						"search" : this.element.dataset.blobselectSearch || null,
+						"watch" : this.element.dataset.blobselectWatch || null,
+						"debug" : this.element.dataset.blobselectDebug || null
 					};
 				}
 			}
@@ -756,7 +756,7 @@
 				return false;
 
 			var label = _sanitizeWhitespace(o.textContent),
-				override = parseInt(o.getAttribute('data-placeholder'), 10) || 0;
+				override = parseInt(o.dataset.placeholder, 10) || 0;
 
 			return (!label.length || override === 1 || label.toLowerCase() === this.settings.placeholderOption.toLowerCase());
 		},
@@ -886,7 +886,7 @@
 			var choice,
 				me = this,
 				items = $$('.blobselect-item', this.items),
-				focused = parseInt(this.items.getAttribute('data-focused'), 10) || -1;
+				focused = parseInt(this.items.dataset.focused, 10) || -1;
 
 			//opt for focused first
 			if(focused !== -1){
@@ -900,7 +900,7 @@
 				_forEach(items, function(item){
 					if(!item.classList.contains('is-not-match') && !item.classList.contains('is-disabled')){
 						if(!choice){
-							me.debug('first item "' + item.getAttribute('data-value') + '"');
+							me.debug('first item "' + item.dataset.value + '"');
 							choice = item;
 						}
 					}
@@ -1196,7 +1196,7 @@
 			if(!this.initialized() || !(o instanceof HTMLDivElement) || !o.classList.contains('blobselect-item'))
 				return this.close();
 
-			var value = o.getAttribute('data-value') || '',
+			var value = o.dataset.value || '',
 				options = this.getOptionByValue(value),
 				me = this;
 
@@ -1236,7 +1236,7 @@
 			if(!this.initialized() || !this.element.multiple || !(o instanceof HTMLDivElement) || !(o.classList.contains('blobselect-selection') || o.classList.contains('blobselect-item')))
 				return this.close();
 
-			var value = o.getAttribute('data-value') || '',
+			var value = o.dataset.value || '',
 				options = this.getOptionByValue(value, true),
 				me = this;
 
@@ -1289,7 +1289,7 @@
 					//first pass, try matches
 					if(needle.length){
 						_forEach(items, function(item){
-							var haystack = item.getAttribute('data-label'),
+							var haystack = item.dataset.label,
 								matchNew = !needle.length || RegExp(needle, 'i').test(haystack),
 								matchOld = !item.classList.contains('is-not-match');
 
@@ -1337,8 +1337,8 @@
 
 			var me = this;
 			items.sort(function(a,b){
-				var aText = a.getAttribute('data-label') || _sanitizeWhitespace(a.textContent) || _sanitizeWhitespace(a.label),
-					bText = b.getAttribute('data-label') || _sanitizeWhitespace(b.textContent) || _sanitizeWhitespace(b.label);
+				var aText = a.dataset.label || _sanitizeWhitespace(a.textContent) || _sanitizeWhitespace(a.label),
+					bText = b.dataset.label || _sanitizeWhitespace(b.textContent) || _sanitizeWhitespace(b.label);
 
 				//treat placeholders as priority
 				if(aText.toLowerCase() === me.settings.placeholderOption.toLowerCase())
