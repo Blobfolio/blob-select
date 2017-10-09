@@ -97,8 +97,12 @@
 	function _hash(key, seed) {
 		var remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
 
-		if(typeof key === 'object')
+		if(typeof key === 'object') {
 			key = JSON.stringify(key);
+		}
+		else {
+			key = key + '';
+		}
 
 		remainder = key.length & 3; // key.length % 4
 		bytes = key.length - remainder;
@@ -220,14 +224,16 @@
 	var _closest = function (el, selector){
 		try {
 			//try self
-			if(el.matches(selector))
+			if(el.matches(selector)) {
 				return el;
+			}
 
 			//up the chain
 			while(el.parentNode && 'matches' in el.parentNode){
 				el = el.parentNode;
-				if(el.matches(selector))
+				if(el.matches(selector)) {
 					return el;
+				}
 			}
 		} catch(Ex){}
 
@@ -244,13 +250,15 @@
 	var _forEach = function(collection, callback){
 		if(Object.prototype.toString.call(collection) === '[object Object]'){
 			for (var key in collection){
-				if (Object.prototype.hasOwnProperty.call(collection, key))
+				if (Object.prototype.hasOwnProperty.call(collection, key)) {
 					callback(collection[key], key, collection);
+				}
 			}
 		}
 		else {
-			for (var akey = 0, len = collection.length; akey < len; akey++)
+			for (var akey = 0, len = collection.length; akey < len; akey++) {
 				callback(collection[akey], akey, collection);
+			}
 		}
 	};
 
@@ -281,8 +289,9 @@
 	// @param string
 	// @return JSON or {}
 	var _parseJSON = function(str){
-		if(_isObject(str))
+		if(_isObject(str)) {
 			return str;
+		}
 
 		try {
 			var j = JSON.parse(str);
@@ -333,16 +342,18 @@
 	// @param element(s)
 	// @return n/a
 	var _removeElement = function(elements){
-		if(!Array.isArray(elements) && elements instanceof HTMLElement)
+		if(!Array.isArray(elements) && elements instanceof HTMLElement) {
 			elements = [elements];
+		}
 
 		//prefer jQuery's element removal handling as it does a
 		//better job of clearing bound events across browsers
 		if(typeof jQuery !== 'undefined'){
 			_forEach(elements, function(element){
 				jQuery(element).remove();
-				if(element in _bound)
+				if(element in _bound) {
 					delete _bound[element];
+				}
 			});
 			return;
 		}
@@ -374,14 +385,17 @@
 	// @return true/false
 	var _bound = {};
 	var _bind = function(element, event, callback){
-		if(!element || typeof callback !== 'function' || !event)
+		if(!element || (typeof callback !== 'function') || !event) {
 			return false;
+		}
 
-		if(!(element in _bound))
+		if(!(element in _bound)) {
 			_bound[element] = {};
+		}
 
-		if(!(event in _bound[element]))
+		if(!(event in _bound[element])) {
 			_bound[element][event] = [];
+		}
 
 		_bound[element][event].push(callback);
 
@@ -447,8 +461,9 @@
 		// @param log
 		// @return n/a
 		debug: function(msg){
-			if(!this.settings.debug)
+			if(!this.settings.debug) {
 				return false;
+			}
 
 			console.log('blobSelect[' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '] ' + msg);
 			return true;
@@ -472,8 +487,9 @@
 
 		init: function(args){
 			//already initialized
-			if(this.initialized())
+			if(this.initialized()) {
 				return this.debug('already initialized; aborting');
+			}
 
 			//sort out user settings
 			if(!args){
@@ -497,8 +513,9 @@
 			//build our wrapper
 			this.container = document.createElement('div');
 				this.container.classList.add('blobselect');
-				if(this.element.multiple)
+				if(this.element.multiple) {
 					this.container.classList.add('is-multiple');
+				}
 				this.container.tabIndex = this.element.tabIndex || 0;
 				this.element.parentNode.insertBefore(this.container, this.element);
 
@@ -550,10 +567,12 @@
 				me.debug('click outside');
 				if(me.isOpen()){
 					//ignore this or other blobselect elements
-					if(_closest(e.target, '.blobselect') !== null)
+					if(_closest(e.target, '.blobselect') !== null) {
 						return true;
-					else
+					}
+					else {
 						me.close();
+					}
 				}
 			});
 
@@ -573,16 +592,19 @@
 		// @return true
 		destroy: function(){
 			//already dead?
-			if(!this.initialized())
+			if(!this.initialized()) {
 				return this.debug('not initialized; aborting');
+			}
 
 			//clear the watch interval
-			if(this.watch)
+			if(this.watch) {
 				clearInterval(this.watch);
+			}
 
 			//remove the search field
-			if(this.search)
+			if(this.search) {
 				_removeElement(this.search);
+			}
 
 			//items
 			_removeElement($$('.blobselect-item-group, .blobselect-item', this.items));
@@ -620,23 +642,27 @@
 
 		saveSettings: function(userSettings){
 			userSettings = _parseJSON(userSettings);
-			if(!_isObject(userSettings))
+			if(!_isObject(userSettings)) {
 				userSettings = {};
+			}
 
 			this.settings = _extend(defaultSettings, userSettings);
 
 			//sanitize values
-			if(typeof this.settings.search !== 'boolean')
+			if(typeof this.settings.search !== 'boolean') {
 				this.settings.search = (typeof this.settings.search === 'string' && this.settings.search.toLowerCase() === 'true') || (typeof this.settings.search === 'number' && this.settings.search);
+			}
 			this.settings.order = typeof this.settings.order === 'string' && ['ASC','DESC'].indexOf(this.settings.order.toUpperCase()) !== -1 ? this.settings.order.toUpperCase() : false;
 			this.settings.orderType = typeof this.settings.orderType === 'string' && ['string','numeric'].indexOf(this.settings.orderType.toLowerCase()) !== -1 ? this.settings.orderType.toLowerCase() : false;
 			this.settings.placeholder = _sanitizeWhitespace(this.settings.placeholder);
 			this.settings.placeholderOption = _sanitizeWhitespace(this.settings.placeholderOption);
 			this.settings.watch = parseInt(this.settings.watch, 10) || 0;
-			if(this.settings.watch < 0)
+			if(this.settings.watch < 0) {
 				this.settings.watch = 0;
-			if(typeof this.settings.debug !== 'boolean')
+			}
+			if(typeof this.settings.debug !== 'boolean') {
 				this.settings.debug = (typeof this.settings.debug === 'string' && this.settings.debug.toLowerCase() === 'true') || (typeof this.settings.debug === 'number' && this.settings.debug);
+			}
 
 			this.debug('using settings: ' + JSON.stringify(this.settings));
 
@@ -648,8 +674,9 @@
 		// Search Field
 
 		searchField: function(){
-			if(!this.initialized())
+			if(!this.initialized()) {
 				return false;
+			}
 
 			if(!this.settings.search && this.search !== null){
 				_removeElement(this.search);
@@ -662,10 +689,12 @@
 					this.search.setAttribute('type','text');
 					this.search.setAttribute('contentEditable','true');
 					this.search.tabIndex = 0;
-					if(this.items.firstChild)
+					if(this.items.firstChild) {
 						this.items.insertBefore(this.search, this.items.firstChild);
-					else
+					}
+					else {
 						this.items.appendChild(this.search);
+					}
 
 				this.debug('search field built');
 			}
@@ -681,11 +710,13 @@
 		// @param timeout
 		// @return true
 		debounce: function(key, func, timeout){
-			if(timeout === undefined || timeout === null)
+			if(timeout === undefined || timeout === null) {
 				timeout = 250;
+			}
 
-			if(this.debounceQueue[key] !== undefined && this.debounceQueue[key] !== null)
+			if(this.debounceQueue[key] !== undefined && this.debounceQueue[key] !== null) {
 				clearTimeout(this.debounceQueue[key]);
+			}
 
 			this.debounceQueue[key] = setTimeout(func(), timeout);
 			return true;
@@ -711,10 +742,16 @@
 					//while we're here, update the blob-select
 					//container's disabled status to match the
 					//element's
-					if(disabled)
-						me.container.classList.add('is-disabled');
-					else
-						me.container.classList.remove('is-disabled');
+					if (disabled) {
+						if (!me.container.classList.contains('is-disabled')) {
+							me.container.classList.add('is-disabled');
+						}
+					}
+					else {
+						if (me.container.classList.contains('is-disabled')) {
+							me.container.classList.remove('is-disabled');
+						}
+					}
 
 					//check fancy CSS selectors
 					var keys = Object.keys(selectors),
@@ -751,8 +788,9 @@
 		// Build Option Hash
 
 		getHash: function(){
-			if(!this.initialized())
+			if(!this.initialized()) {
 				return false;
+			}
 
 			var h = [],
 				attr = {},
@@ -787,8 +825,9 @@
 		// Is Placeholder?
 
 		is_placeholder: function(o){
-			if(o.tagName !== 'OPTION')
+			if(o.tagName !== 'OPTION') {
 				return false;
+			}
 
 			var label = _sanitizeWhitespace(o.textContent),
 				override = parseInt(o.dataset.placeholder, 10) || 0;
@@ -800,8 +839,9 @@
 		// Update Items
 
 		updateItems: function(){
-			if(!this.initialized())
+			if(!this.initialized()) {
 				return false;
+			}
 
 			var items = [],
 				me = this,
@@ -843,11 +883,12 @@
 				for (i=0; i<keysLength; i++) {
 					if(this.element.children[keys[i]].tagName === 'OPTION'){
 						//bubble placeholders to top
-						if(me.is_placeholder(this.element.children[keys[i]]))
+						if(me.is_placeholder(this.element.children[keys[i]])) {
 							items.unshift(this.element.children[keys[i]]);
-						else
+						}
+						else {
 							tmp.push(this.element.children[keys[i]]);
-
+						}
 					}
 				}
 				tmp = this.sortItems(tmp);
@@ -882,8 +923,9 @@
 				//an option group
 				if(items[keys[i]].tagName === 'OPTGROUP'){
 					el.classList.add('blobselect-item-group');
-					if(items[keys[i]].disabled)
+					if(items[keys[i]].disabled) {
 						el.classList.add('is-disabled');
+					}
 					el.textContent = _sanitizeWhitespace(items[keys[i]].label);
 				}
 				//an option
@@ -895,14 +937,23 @@
 
 					el.classList.add('blobselect-item');
 
-					if(items[keys[i]].selected)
+					if(items[keys[i]].selected) {
 						el.classList.add('is-active');
+					}
 
-					if(items[keys[i]].parentNode.tagName === 'OPTGROUP')
+					if(items[keys[i]].parentNode.tagName === 'OPTGROUP') {
 						el.classList.add('has-group');
+					}
 
-					if(items[keys[i]].disabled || (items[keys[i]].parentNode.tagName === 'OPTGROUP') && items[keys[i]].parentNode.disabled)
+					if(
+						items[keys[i]].disabled ||
+						(
+							(items[keys[i]].parentNode.tagName === 'OPTGROUP') &&
+							items[keys[i]].parentNode.disabled
+						)
+					) {
 						el.classList.add('is-disabled');
+					}
 
 					el.setAttribute('data-value', items[keys[i]].value);
 					el.setAttribute('data-label', label);
@@ -911,8 +962,9 @@
 						el.classList.add('is-placeholder');
 						el.textContent = me.settings.placeholderOption;
 					}
-					else
+					else {
 						el.textContent = label;
+					}
 
 					/* jshint ignore:start */
 					_bind(el, 'focus', function(e){
@@ -952,13 +1004,20 @@
 			}
 
 			//otherwise find the first enabled child
-			if(!choice || choice.classList.contains('is-disabled') || choice.classList.contains('is-not-match')){
+			if(
+				!choice ||
+				choice.classList.contains('is-disabled') ||
+				choice.classList.contains('is-not-match')
+			){
 				choice = null;
 				var keys = Object.keys(items),
 					keysLength = keys.length;
 				//locate either a focused/enabled item, or the first enabled item
 				for (i=0; i<keysLength; i++) {
-					if(!items[keys[i]].classList.contains('is-not-match') && !items[keys[i]].classList.contains('is-disabled')){
+					if(
+						!items[keys[i]].classList.contains('is-not-match') &&
+						!items[keys[i]].classList.contains('is-disabled')
+					){
 						if(!choice){
 							me.debug('first item "' + items[keys[i]].dataset.value + '"');
 							choice = items[keys[i]];
@@ -974,8 +1033,9 @@
 		// Update Selections
 
 		updateSelections: function(){
-			if(!this.initialized())
+			if(!this.initialized()) {
 				return false;
+			}
 
 			var s = [],
 				me = this,
@@ -1029,16 +1089,21 @@
 			//don't do anything if disabled
 			if(this.container.classList.contains('is-disabled')){
 				this.debug('click ignored; field is disabled');
-				if(this.isOpen())
+				if(this.isOpen()) {
 					return this.close();
-				else
+				}
+				else {
 					return;
+				}
 			}
 
 			this.debug('clicked');
 
 			//a (multi) selection
-			if(e.target.classList.contains('blobselect-selection') && this.element.multiple){
+			if (
+				e.target.classList.contains('blobselect-selection') &&
+				this.element.multiple
+			){
 				return this.unselect(e.target);
 			}
 
@@ -1062,10 +1127,12 @@
 			}
 
 			//toggle container state
-			if(!this.isOpen())
+			if(!this.isOpen()) {
 				return this.open();
-			else
+			}
+			else {
 				return this.close();
+			}
 		},
 
 		//-------------------------------------------------
@@ -1120,15 +1187,18 @@
 				e.preventDefault();
 
 				//update search?
-				if(this.search)
+				if(this.search) {
 					this.search.innerHTML = _sanitizeWhitespace(this.search.textContent);
+				}
 
 				//select the selection
 				var choice = this.getActiveItem();
-				if(choice)
+				if(choice) {
 					return this.select(choice);
-				else
+				}
+				else {
 					return this.close();
+				}
 			}
 
 			//navigation?
@@ -1136,8 +1206,9 @@
 				e.stopPropagation();
 				if(e.target.classList.contains('blobselect-item-search')){
 					//we only want to exit the search field on these keys
-					if(['tab','up','down'].indexOf(keyMapped) !== -1)
+					if(['tab','up','down'].indexOf(keyMapped) !== -1) {
 						return this.traverseItems('current');
+					}
 
 					return;
 				}
@@ -1171,23 +1242,28 @@
 
 			//bad active somehow?
 			if(activeIndex === -1){
-				if(items.length)
+				if(items.length) {
 					activeIndex = 0;
-				else
+				}
+				else {
 					return;
+				}
 			}
 
 			//we just want to move to the current
-			if(direction === 'current')
+			if(direction === 'current') {
 				choice = items[activeIndex];
+			}
 
 			//back
-			else if(direction === 'back')
+			else if(direction === 'back') {
 				choice = activeIndex > 0 ? items[activeIndex - 1] : items[0];
+			}
 
 			//next
-			else
+			else {
 				choice = activeIndex < items.length - 1 ? items[activeIndex + 1] : items[items.length - 1];
+			}
 
 			return choice.focus();
 		},
@@ -1196,15 +1272,19 @@
 		// Open
 
 		isOpen: function(){
-			return (this.container.classList.contains('is-open') || this.container.classList.contains('is-opening'));
+			return (
+				this.container.classList.contains('is-open') ||
+				this.container.classList.contains('is-opening')
+			);
 		},
 
 		open: function(){
 			var me = this;
 
 			//we can ignore this if already open or not initialized
-			if(!this.initialized() || this.isOpen())
+			if(!this.initialized() || this.isOpen()) {
 				return true;
+			}
 
 			//close any other blobselects
 			var selects = $$('.blobselect.is-open select'),
@@ -1238,8 +1318,9 @@
 
 		close: function(){
 			//we can ignore this if already open or not initialized
-			if(!this.initialized() || !this.isOpen())
+			if(!this.initialized() || !this.isOpen()) {
 				return true;
+			}
 
 			this.container.classList.remove('is-open', 'is-opening');
 			this.items.setAttribute('data-focused', -1);
@@ -1264,8 +1345,13 @@
 		// Select
 
 		select: function(o){
-			if(!this.initialized() || !(o instanceof HTMLDivElement) || !o.classList.contains('blobselect-item'))
+			if(
+				!this.initialized() ||
+				!(o instanceof HTMLDivElement) ||
+				!o.classList.contains('blobselect-item')
+			) {
 				return this.close();
+			}
 
 			var value = o.dataset.value || '',
 				options = this.getOptionByValue(value),
@@ -1306,8 +1392,15 @@
 		// Unselect
 
 		unselect: function(o){
-			if(!this.initialized() || !this.element.multiple || !(o instanceof HTMLDivElement) || !(o.classList.contains('blobselect-selection') || o.classList.contains('blobselect-item')))
+			if (
+				!this.initialized() ||
+				!this.element.multiple ||
+				!(o instanceof HTMLDivElement) ||
+				!(o.classList.contains('blobselect-selection') ||
+					o.classList.contains('blobselect-item'))
+			) {
 				return this.close();
+			}
 
 			var value = o.dataset.value || '',
 				options = this.getOptionByValue(value, true),
