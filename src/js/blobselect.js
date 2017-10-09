@@ -174,14 +174,40 @@
 	// @param overrides
 	// @return extended
 	var _extend = function(defaults, overrides){
-		var extended = {};
-		_forEach(defaults, function (v,k){
-			extended[k] = defaults[k];
-		});
-		_forEach(overrides, function (v,k){
-			if(extended[k] !== undefined && v !== undefined && v !== null)
-				extended[k] = overrides[k];
-		});
+		var extended = {},
+			keys,
+			keysLength;
+
+		// Sanitize defaults.
+		if (typeof defaults !== 'object') {
+			defaults = {};
+		}
+		if (typeof overrides !== 'object') {
+			overrides = {};
+		}
+
+		// Loop defaults.
+		keys = Object.keys(defaults);
+		keysLength = keys.length;
+
+		for (i=0; i<keysLength; i++) {
+			extended[keys[i]] = defaults[keys[i]];
+		}
+
+		// Loop overrides.
+		keys = Object.keys(overrides);
+		keysLength = keys.length;
+
+		for (i=0; i<keysLength; i++) {
+			if (
+				(typeof extended[keys[i]] !== 'undefined') &&
+				(typeof overrides[keys[i]] !== 'undefined') &&
+				(overrides[keys[i]] !== null)
+			) {
+				extended[keys[i]] = overrides[keys[i]];
+			}
+		}
+
 		return extended;
 	};
 
@@ -691,19 +717,22 @@
 						me.container.classList.remove('is-disabled');
 
 					//check fancy CSS selectors
-					_forEach(selectors, function(s){
-						var hasIt = me.container.hasAttribute(s),
-							matches = me.element.matches(s);
+					var keys = Object.keys(selectors),
+						keysLength = keys.length;
+
+					for (i=0; i<keysLength; i++) {
+						var hasIt = me.container.hasAttribute(selectors[keys[i]]),
+							matches = me.element.matches(selectors[keys[i]]);
 
 						if(!hasIt && matches){
-							me.container.setAttribute(s, true);
-							me.container[s] = true;
+							me.container.setAttribute(selectors[keys[i]], true);
+							me.container[selectors[keys[i]]] = true;
 						}
 						else if(hasIt && !matches){
-							me.container.removeAttribute(s);
-							me.container[s] = false;
+							me.container.removeAttribute(selectors[keys[i]]);
+							me.container[selectors[keys[i]]] = false;
 						}
-					});
+					}
 
 					//double-check options
 					if(force || h !== me.hash){
@@ -730,20 +759,26 @@
 				me = this;
 
 			//first, let's do the select's state attributes
-			_forEach(selectors, function(s){
-				attr[s] = me.element.matches(s);
-			});
+			var keys = Object.keys(selectors),
+				keysLength = keys.length;
+
+			for (i=0; i<keysLength; i++) {
+				attr[selectors[keys[i]]] = me.element.matches(selectors[keys[i]]);
+			}
 			h.push(attr);
 
 			//and options
-			_forEach($$('option, optgroup', this.element), function(o){
+			var options = $$('option, optgroup', this.element);
+			keys = Object.keys(options);
+			keysLength = keys.length;
+			for (i=0; i<keysLength; i++) {
 				h.push({
-					value : o.value,
-					label : o.textContent,
-					selected : o.selected,
-					disabled : o.disabled
+					value : options[keys[i]].value,
+					label : options[keys[i]].textContent,
+					selected : options[keys[i]].selected,
+					disabled : options[keys[i]].disabled
 				});
-			});
+			}
 
 			return _hash(h);
 		},
@@ -768,96 +803,118 @@
 			if(!this.initialized())
 				return false;
 
-			var i = [],
-				me = this;
-				optgroup = $$('optgroup', this.element).length;
+			var items = [],
+				me = this,
+				optgroups = $$('optgroup', this.element),
+				keys,
+				keysLength,
+				keys2,
+				keys2Length,
+				options,
+				tmp;
 
 			//we want to sort optgroup items within themselves
-			if(optgroup){
-				_forEach($$('optgroup', this.element), function(o){
-					i.push(o);
+			keys = Object.keys(optgroups);
+			keysLength = keys.length;
+			if(keysLength){
+				for (i=0; i<keysLength; i++) {
+					items.push(optgroups[keys[i]]);
 
-					var tmp = [];
-					_forEach($$('option', o), function(o2){
-						tmp.push(o2);
-					});
+					tmp = [];
+					options = $$('option', optgroups[keys[i]]);
+					keys2 = Object.keys(options);
+					keys2Length = keys2.length;
+					for (j=0; j<keys2Length; j++) {
+						tmp.push(options[keys2[j]]);
+					}
 
 					tmp = me.sortItems(tmp);
-
-					_forEach(tmp, function(o2){
-						i.push(o2);
-					});
-				});
+					keys2 = Object.keys(tmp);
+					keys2Length = keys2.length;
+					for (j=0; j<keys2Length; j++) {
+						items.push(tmp[keys2[j]]);
+					}
+				}
 
 				//now do the same thing for any un-grouped options
-				var tmp = [];
-				_forEach(this.element.children, function(o){
-					if(o.tagName === 'OPTION'){
+				tmp = [];
+				keys = Object.keys(this.element.children);
+				keysLength = keys.length;
+				for (i=0; i<keysLength; i++) {
+					if(this.element.children[keys[i]].tagName === 'OPTION'){
 						//bubble placeholders to top
-						if(me.is_placeholder(o))
-							i.unshift(o);
+						if(me.is_placeholder(this.element.children[keys[i]]))
+							items.unshift(this.element.children[keys[i]]);
 						else
-							tmp.push(o);
+							tmp.push(this.element.children[keys[i]]);
 
 					}
-				});
+				}
 				tmp = this.sortItems(tmp);
 
-				_forEach(tmp, function(o){
-					i.push(o);
-				});
+				keys = Object.keys(tmp);
+				keysLength = keys.length;
+				for (i=0; i<keysLength; i++) {
+					items.push(tmp[keys[i]]);
+				}
 			}
 			//just options
 			else {
-				_forEach($$('option', this.element), function(o){
-					i.push(o);
-				});
+				options = $$('option', this.element);
+				keys = Object.keys(options);
+				keysLength = keys.length;
+				for (i=0; i<keysLength; i++) {
+					items.push(options[keys[i]]);
+				}
 
-				i = this.sortItems(i);
+				items = this.sortItems(items);
 			}
 
 			//clear any old items
 			_removeElement($$('.blobselect-item-group, .blobselect-item', this.items));
 
 			var tabindex = 1;
-			_forEach(i, function(o){
+			keys = Object.keys(items);
+			keysLength = keys.length;
+			for (i=0; i<keysLength; i++) {
 				var el = document.createElement('div');
 
 				//an option group
-				if(o.tagName === 'OPTGROUP'){
+				if(items[keys[i]].tagName === 'OPTGROUP'){
 					el.classList.add('blobselect-item-group');
-					if(o.disabled)
+					if(items[keys[i]].disabled)
 						el.classList.add('is-disabled');
-					el.textContent = _sanitizeWhitespace(o.label);
+					el.textContent = _sanitizeWhitespace(items[keys[i]].label);
 				}
 				//an option
 				else {
 					tabindex++;
 					el.tabIndex = tabindex;
 
-					var label = _sanitizeWhitespace(o.textContent);
+					var label = _sanitizeWhitespace(items[keys[i]].textContent);
 
 					el.classList.add('blobselect-item');
 
-					if(o.selected)
+					if(items[keys[i]].selected)
 						el.classList.add('is-active');
 
-					if(o.parentNode.tagName === 'OPTGROUP')
+					if(items[keys[i]].parentNode.tagName === 'OPTGROUP')
 						el.classList.add('has-group');
 
-					if(o.disabled || (o.parentNode.tagName === 'OPTGROUP') && o.parentNode.disabled)
+					if(items[keys[i]].disabled || (items[keys[i]].parentNode.tagName === 'OPTGROUP') && items[keys[i]].parentNode.disabled)
 						el.classList.add('is-disabled');
 
-					el.setAttribute('data-value', o.value);
+					el.setAttribute('data-value', items[keys[i]].value);
 					el.setAttribute('data-label', label);
 
-					if(me.is_placeholder(o)){
+					if(me.is_placeholder(items[keys[i]])){
 						el.classList.add('is-placeholder');
 						el.textContent = me.settings.placeholderOption;
 					}
 					else
 						el.textContent = label;
 
+					/* jshint ignore:start */
 					_bind(el, 'focus', function(e){
 						//since true focus is lost on events caught by wrappers,
 						//we want to store this as an attribute
@@ -868,10 +925,11 @@
 					_bind(el, 'blur', function(e){
 						el.classList.remove('is-focused');
 					});
+					/* jshint ignore:end */
 				}
 
 				me.items.appendChild(el);
-			});
+			}
 
 			this.debug('dropdown items rebuilt');
 		},
@@ -896,15 +954,17 @@
 			//otherwise find the first enabled child
 			if(!choice || choice.classList.contains('is-disabled') || choice.classList.contains('is-not-match')){
 				choice = null;
+				var keys = Object.keys(items),
+					keysLength = keys.length;
 				//locate either a focused/enabled item, or the first enabled item
-				_forEach(items, function(item){
-					if(!item.classList.contains('is-not-match') && !item.classList.contains('is-disabled')){
+				for (i=0; i<keysLength; i++) {
+					if(!items[keys[i]].classList.contains('is-not-match') && !items[keys[i]].classList.contains('is-disabled')){
 						if(!choice){
-							me.debug('first item "' + item.dataset.value + '"');
-							choice = item;
+							me.debug('first item "' + items[keys[i]].dataset.value + '"');
+							choice = items[keys[i]];
 						}
 					}
-				});
+				}
 			}
 
 			return choice;
@@ -918,36 +978,44 @@
 				return false;
 
 			var s = [],
-				me = this;
+				me = this,
+				options = $$('option', this.element),
+				keys = Object.keys(options),
+				keysLength = keys.length;
 
-			_forEach($$('option', this.element), function(o){
-				if(o.selected)
-					s.push(o);
-			});
+			for (i=0; i<keysLength; i++) {
+				if(options[keys[i]].selected){
+					s.push(options[keys[i]]);
+				}
+			}
 
 			s = this.sortItems(s);
 
 			//clear any old selections
-			while(this.selections.firstChild)
+			while(this.selections.firstChild) {
 				_removeElement(this.selections.firstChild);
+			}
 
-			_forEach(s, function(o){
+			keys = Object.keys(s);
+			keysLength = keys.length;
+			for (i=0; i<keysLength; i++) {
 				var el = document.createElement('div'),
-					label = _sanitizeWhitespace(o.textContent);
+					label = _sanitizeWhitespace(s[keys[i]].textContent);
 					el.classList.add('blobselect-selection');
-					el.setAttribute('data-value', o.value);
+					el.setAttribute('data-value', s[keys[i]].value);
 					el.setAttribute('data-label', label);
 
-					if(me.is_placeholder(o)){
+					if(me.is_placeholder(s[keys[i]])){
 						el.classList.add('is-placeholder');
 						el.textContent = me.settings.placeholder;
 					}
-					else
+					else {
 						el.textContent = label;
+					}
 
 				//and add it
 				me.selections.appendChild(el);
-			});
+			}
 
 			this.debug('selections rebuilt');
 		},
@@ -1139,9 +1207,12 @@
 				return true;
 
 			//close any other blobselects
-			_forEach($$('.blobselect.is-open select'), function(s){
-				s.blobSelect.close();
-			});
+			var selects = $$('.blobselect.is-open select'),
+				keys = Object.keys(selects),
+				keysLength = keys.length;
+			for (i=0; i<keysLength; i++) {
+				selects[keys[i]].blobSelect.close();
+			}
 
 			this.items.setAttribute('data-focused', -1);
 
@@ -1198,21 +1269,23 @@
 
 			var value = o.dataset.value || '',
 				options = this.getOptionByValue(value),
-				me = this;
+				me = this,
+				keys = Object.keys(options),
+				keysLength = keys.length;
 
 
-			if(options.length){
+			if(keysLength){
 				if(this.element.multiple){
-					_forEach(options, function(option){
-						if(option.selected){
-							option.selected = 0;
-							me.debug('unselected: "' + option.value + '"');
+					for (i=0; i<keysLength; i++) {
+						if(options[keys[i]].selected){
+							options[keys[i]].selected = 0;
+							me.debug('unselected: "' + options[keys[i]].value + '"');
 						}
 						else {
-							option.selected = 1;
-							me.debug('selected: "' + option.value + '"');
+							options[keys[i]].selected = 1;
+							me.debug('selected: "' + options[keys[i]].value + '"');
 						}
-					});
+					}
 				}
 				else{
 					this.element.selectedIndex = options[0].index;
@@ -1238,13 +1311,15 @@
 
 			var value = o.dataset.value || '',
 				options = this.getOptionByValue(value, true),
-				me = this;
+				me = this,
+				keys = Object.keys(options),
+				keysLength = keys.length;
 
-			if(options.length){
-				_forEach(options, function(option){
-					option.selected = 0;
-					me.debug('unselected: "' + option.value + '"');
-				});
+			if(keysLength){
+				for (i=0; i<keysLength; i++) {
+					options[keys[i]].selected = 0;
+					me.debug('unselected: "' + options[keys[i]].value + '"');
+				}
 			}
 
 			this.close();
@@ -1256,16 +1331,21 @@
 		// Get Option by Value
 
 		getOptionByValue: function(value, allowDisabled){
-			if(!this.initialized())
+			if(!this.initialized()) {
 				return false;
+			}
 
 			var me = this,
-				found = [];
+				found = [],
+				options = $$('option', this.element),
+				keys = Object.keys(options),
+				keysLength = keys.length;
 
-			_forEach($$('option', this.element), function(option){
-				if(option.value === value && (allowDisabled || !option.disabled))
-					found.push(option);
-			});
+			for (i=0; i<keysLength; i++) {
+				if(options[keys[i]].value === value && (allowDisabled || !options[keys[i]].disabled)) {
+					found.push(options[keys[i]]);
+				}
+			}
 
 			return found;
 		},
@@ -1274,8 +1354,9 @@
 		// Filter Items by Search
 
 		filterItems: function(){
-			if(!this.initialized() || !this.settings.search)
+			if(!this.initialized() || !this.settings.search) {
 				return false;
+			}
 
 			var me = this;
 
@@ -1284,45 +1365,49 @@
 				function(){
 					var needle = _sanitizeRegexp(_sanitizeWhitespace(me.search.textContent)),
 						items = $$('.blobselect-item', me.items),
-						matches = 0;
+						matches = 0,
+						keys = Object.keys(items),
+						keysLength = keys.length;
 
 					//first pass, try matches
 					if(needle.length){
-						_forEach(items, function(item){
-							var haystack = item.dataset.label,
+						for (i=0; i<keysLength; i++) {
+							var haystack = items[keys[i]].dataset.label,
 								matchNew = !needle.length || RegExp(needle, 'i').test(haystack),
-								matchOld = !item.classList.contains('is-not-match');
+								matchOld = !items[keys[i]].classList.contains('is-not-match');
 
 							//start fresh
-							if(item.classList.contains('is-placeholder'))
+							if(items[keys[i]].classList.contains('is-placeholder')) {
 								haystack = me.settings.placeholderOption;
+							}
 
-							item.textContent = haystack;
+							items[keys[i]].textContent = haystack;
 
 							//matches now
 							if(matchNew){
-								item.classList.remove('is-not-match');
-								item.classList.add('is-match');
-								item.innerHTML = haystack.replace(RegExp(needle, "gi"), "<mark>$&</mark>");
+								items[keys[i]].classList.remove('is-not-match');
+								items[keys[i]].classList.add('is-match');
+								items[keys[i]].innerHTML = haystack.replace(RegExp(needle, "gi"), "<mark>$&</mark>");
 								matches++;
 							}
 							//doesn't match now
 							else if(!matchNew){
-								item.classList.add('is-not-match');
-								item.classList.remove('is-match');
+								items[keys[i]].classList.add('is-not-match');
+								items[keys[i]].classList.remove('is-match');
 							}
-						});
+						}
 					}
 
 					//if there are no matches, treat it like a non-search
 					if(!matches){
-						_forEach(items, function(item){
-							item.classList.remove('is-not-match');
-							item.innerHTML = item.textContent;
-						});
+						for (i=0; i<keysLength; i++) {
+							items[keys[i]].classList.remove('is-not-match');
+							items[keys[i]].innerHTML = items[keys[i]].textContent;
+						}
 					}
-					else
+					else {
 						me.debug('items filtered by search term');
+					}
 				},
 				100
 			);
@@ -1332,8 +1417,9 @@
 		// Sort Items
 
 		sortItems: function(items){
-			if(!this.initialized() || !this.settings.orderType || !this.settings.order || !Array.isArray(items) || !items.length)
+			if(!this.initialized() || !this.settings.orderType || !this.settings.order || !Array.isArray(items) || !items.length) {
 				return items;
+			}
 
 			var me = this;
 			items.sort(function(a,b){
@@ -1341,22 +1427,27 @@
 					bText = b.dataset.label || _sanitizeWhitespace(b.textContent) || _sanitizeWhitespace(b.label);
 
 				//treat placeholders as priority
-				if(aText.toLowerCase() === me.settings.placeholderOption.toLowerCase())
+				if(aText.toLowerCase() === me.settings.placeholderOption.toLowerCase()) {
 					aText = me.settings.orderType === 'numeric' ? 0 : '';
-				if(bText.toLowerCase() === me.settings.placeholderOption.toLowerCase())
+				}
+				if(bText.toLowerCase() === me.settings.placeholderOption.toLowerCase()) {
 					bText = me.settings.orderType === 'numeric' ? 0 : '';
+				}
 
 				if(me.settings.orderType === 'numeric'){
 					aText = Number(aText.replace(/[^\d\.]/g, '')) || 0;
 					bText = Number(bText.replace(/[^\d\.]/g, '')) || 0;
 				}
 
-				if(aText === bText)
+				if(aText === bText) {
 					return 0;
-				else if(me.settings.order === 'ASC')
+				}
+				else if(me.settings.order === 'ASC') {
 					return aText < bText ? -1 : 1;
-				else
+				}
+				else {
 					return aText > bText ? -1 : 1;
+				}
 			});
 
 			return items;
