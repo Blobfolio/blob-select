@@ -10,7 +10,7 @@
 	<link rel='stylesheet' id='css-core-css'  href='../dist/css/blobselect.css' type='text/css' media='all' />
 	<!--<link rel='stylesheet' id='css-core-css'  href='../dist/css/blobfolio.css' type='text/css' media='all' />-->
 
-	<script src="../dist/js/blobselect.min.js"></script>
+	<script src="../dist/js/blobselect2.min.js"></script>
 </head>
 <body>
 
@@ -30,7 +30,6 @@
 	<option value="cabbage">Cabbage</option>
 	<option value="carrots">Carrots</option>
 	<option value="lettuce">Lettuce</option>
-
 </select>
 
 <!-- REGULAR EXAMPLE -->
@@ -89,6 +88,19 @@
 	<option value="lettuce">Lettuce</option>
 </select>
 
+<!-- REGULAR EXAMPLE -->
+<label for="select-5">JSON Initialization</label>
+<select
+	id="select-5"
+	data-blobselect="{placeholder: 'Eat Something', placeholderOption: 'None of the Above', orderType: 'string', order: 'desc'}">
+	<option value="0"></option>
+	<option value="apples">Apples</option>
+	<option value="bananas">Bananas</option>
+	<option value="pears">Pears</option>
+	<option value="cabbage">Cabbage</option>
+	<option value="carrots">Carrots</option>
+	<option value="lettuce">Lettuce</option>
+</select>
 
 </body>
 </html>
