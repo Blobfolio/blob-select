@@ -139,7 +139,7 @@ document.getElementById('my-select').blobSelect.destroy();
 Set the `watch` runtime property on the field. This will add a `setInterval()` trigger to the mix, rechecking the DOM every `X` millseconds for changes (and rebuilding as necessary).
 
 ```html
-<!-- Will look for changes ever half second. -->
+<!-- Will look for changes every half-second. -->
 <select data-blobselect-watch="500">...</select>
 ```
 
