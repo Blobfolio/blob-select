@@ -2,7 +2,7 @@
   "name": "blobfolio\/blob-select",
   "description": "A dependency-free Javascript plugin for styling SELECT elements with an emphasis on markup simplicity and performance.",
   "type": "component",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "homepage": "https:\/\/github.com\/Blobfolio\/blob-select",
   "license": "WTFPL",
   "authors": [

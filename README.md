@@ -13,6 +13,7 @@ A dependency-free Javascript plugin for styling `<select>` elements with an emph
    * [Configuration](#configuration)
    * [Initialization](#initialization)
    * [Destruction](#destruction)
+   * [Repaint](#repaint)
 4. [Styling](#styling)
 5. [License](#license)
 
@@ -72,15 +73,15 @@ blob-select includes a few choice functional enhancements to the standard `selec
 
 ```html
 <!--
-a single HTML attribute with chosen settings in a (valid!) JSON string
-Note: the ' and " ordering
-Note: if present, individual HTML attributes (see below) will be ignored
+A single HTML attribute with chosen settings as a stringified object,
+e.g. JSON.
+Note: if present, individual HTML attributes (see below) take priority.
 -->
 <select data-blobselect='{"foo" : "bar", ...}'></select>
 
 <!--
-individual HTML attributes
-format like: data-blobselect-{de-camelCased property name}
+Individual HTML attributes.
+Format like: data-blobselect-{de-camelCased property name}
     e.g. set orderType via data-blobselect-order-type="..."
 -->
 <select data-blobselect-foo="bar"></select>
@@ -104,7 +105,6 @@ The following settings are available:
 | *string* | **placeholderOption** | `"---"` | Same as above, except this text is used only for the dropdown listing. If omitted, the *placeholder* setting will supply both. |
 | *bool* | **search** | `FALSE` | Whether or not to display a simple search field in the dropdown. The search field itself is a contentEditable `<div>` so as not to screw up your real `<form>`.
 | *int* | **watch** | `0` | This forces `blob-select` to re-check for changes to its element every *X* milliseconds. This option is useful when other scripts might manipulate the element without firing a `change` event. Otherwise, leave this disabled to spare the unnecessary overhead. |
-| *bool* | **debug** | `FALSE` | Log operational information to the console.log(). |
 
 
 
@@ -113,10 +113,10 @@ The following settings are available:
 blob-select will automatically initialize any `<select>` elements on `DOMContentLoaded` that contain a `data-blobselect*` attribute. Alternatively, you can manually initialize an element at any time as follows:
 
 ```javascript
-//regular ol' JS
+// Regular ol' JS.
 document.getElementById('my-select').blobSelect.init({...});
 
-//jQuery example
+// jQuery example.
 $('#my-select')[0].blobSelect.init({...});
 ```
 
@@ -129,6 +129,28 @@ To restore your page to its natural state, simply run:
 document.getElementById('my-select').blobSelect.destroy();
 ```
 
+
+### Repaint
+
+`blob-select` will automatically listen for `change` events, but some Javascript frameworks might write changes without firing an event. There are two workarounds for this:
+
+**watch**:
+
+Set the `watch` runtime property on the field. This will add a `setInterval()` trigger to the mix, rechecking the DOM every `X` millseconds for changes (and rebuilding as necessary).
+
+```html
+<!-- Will look for changes ever half second. -->
+<select data-blobselect-watch="500">...</select>
+```
+
+**element.blobSelect.buildData()**:
+
+Call the `.buildData()` method after such changes have landed.
+
+```javascript
+// Place this after secret, non-event-firing changes have run.
+document.getElementById('my-select').blobSelect.buildData();
+```
 
 
 ## Styling
