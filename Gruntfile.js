@@ -42,7 +42,7 @@ module.exports = function(grunt) {
 
 		//JAVASCRIPT
 		jshint: {
-			all: ['src/js/blobselect.js', 'src/js/blobselect2.js']
+			all: ['src/js/blobselect.js']
 		},
 
 		uglify: {
@@ -52,7 +52,6 @@ module.exports = function(grunt) {
 			my_target: {
 				files: {
 					'dist/js/blobselect.min.js': ['src/js/blobselect.js'],
-					'dist/js/blobselect2.min.js': ['src/js/blobselect2.js']
 				}
 			}
 		},
