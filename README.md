@@ -253,6 +253,6 @@ This work is free. You can redistribute it and/or modify it under the terms of t
 
 If you have found this work useful and would like to contribute a little something financially, Bitcoin tips are welcome!
 
-[![Bitcoin QR](https://blobfolio.com/wp-content/themes/b3/svg/btc-github.svg)](bitcoin:1PQhurwP2mcM8rHynYMzzs4KSKpBbVz5is?message=Blobfolio+Donation)
+![Bitcoin QR](https://blobfolio.com/wp-content/themes/b3/svg/btc-github.svg)
 
-Receiver: [1PQhurwP2mcM8rHynYMzzs4KSKpBbVz5is](bitcoin:1PQhurwP2mcM8rHynYMzzs4KSKpBbVz5is?message=Blobfolio+Donation)
+Receiver: 1PQhurwP2mcM8rHynYMzzs4KSKpBbVz5is
