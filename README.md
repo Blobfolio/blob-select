@@ -18,6 +18,7 @@ A dependency-free Javascript plugin for styling `<select>` elements with an emph
 5. [License](#license)
 
 
+&nbsp;
 
 ## Features
 
@@ -33,6 +34,7 @@ blob-select additionally provides support for:
 * Sorting
 
 
+&nbsp;
 
 ## Requirements
 
@@ -44,6 +46,7 @@ blob-select does not require any Javascript frameworks, however browsers must su
 If these requirements are not met, blob-select will exit without manipulating the DOM.
 
 
+&nbsp;
 
 ## Use
 
@@ -153,6 +156,8 @@ document.getElementById('my-select').blobSelect.buildData();
 ```
 
 
+&nbsp;
+
 ## Styling
 
 blob-select aims to be as headache-free as possible. Its markup is minimal (see below) and it does not impose pesky inline styles, Javascript animations, or convoluted nested>nested>nested elements. Frontend developers are free to define everything through elegant CSS wizardry.
@@ -228,6 +233,7 @@ The HTML structure is as follows:
 The SCSS project folder includes example styles that might provide some inspiration.
 
 
+&nbsp;
 
 ## License
 
