@@ -251,8 +251,16 @@ This work is free. You can redistribute it and/or modify it under the terms of t
 
 ### Donations
 
-If you have found this work useful and would like to contribute a little something financially, Bitcoin tips are welcome!
-
-![Bitcoin QR](https://blobfolio.com/wp-content/themes/b3/svg/btc-github.svg)
-
-Receiver: 1PQhurwP2mcM8rHynYMzzs4KSKpBbVz5is
+<table>
+  <tbody>
+    <tr>
+      <td width="200">
+        <img src="https://blobfolio.com/wp-content/themes/b3/svg/btc-github.svg" width="200" height="200" alt="Bitcoin QR" />
+      </td>
+      <td>
+        If you have found this work useful and would like to contribute a little something financially, Bitcoin tips are welcome!<br /><br />
+        <strong>1PQhurwP2mcM8rHynYMzzs4KSKpBbVz5is</strong>
+      </td>
+    </tr>
+  </tbody>
+</table>
