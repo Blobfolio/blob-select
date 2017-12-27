@@ -6,7 +6,6 @@
 // default styles
 
 
-
 //in this example CSS, we defer to the browser's
 //rendering of the dropdown menu itself on small
 //devices.  at 768+, we have enough space to
@@ -27,91 +26,104 @@ $transition-speed: .3s;
 
 
 
-//the main blobselect container
+// The main blobselect container.
 .blobselect {
 	position: relative;
+
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
 	flex-wrap: wrap;
-	cursor: pointer;
-	outline: none;
-	color: $color-black;
-	background-color: $color-white;
-	transition: background $transition-speed, color $transition-speed, border $transition-speed;
 
+	padding: 10px;
 	width: 100%;
 	max-width: 300px;
+
 	border: 1px solid $color-grey;
-	padding: 10px;
-	box-sizing: border-box;
+	background-color: $color-white;
+	cursor: pointer;
+	outline: none;
 
-	//force everything in here to use border-box
-	* { box-sizing: border-box; }
+	color: $color-black;
 
-	//a neat trick, for small screens we can preserve
-	//the browser's dropdown functionality, which is
-	//probably better than what we could do with CSS
+	transition:
+		background $transition-speed,
+		color $transition-speed,
+		border $transition-speed;
+
+	// A neat trick, for small screens we can preserve
+	// the browser's dropdown functionality, which is
+	// probably better than what we could do with CSS.
 	select {
 		position: absolute;
 		top: 0;
 		left: -5px;
 		right: -5px;
 		bottom: -5px;
+		z-index: 1000;
+
 		width: calc(100% + 10px);
 		height: calc(100% + 5px);
-		z-index: 1000;
+
 		opacity: 0;
 
-		//for big screens, we don't really need this
-		//any more
-		@media(min-width: $screen-tablet){ display: none; }
+		// For big screens, we don't really need this
+		// any more.
+		@media (min-width: $screen-tablet) { display: none; }
 	}
 
+	// Focus, hover, active.
 	&:focus,
 	&:active,
 	&:hover { border-color: $color-black; }
 
+	// Select is open.
 	&.is-open {
 		z-index: 1;
 		border-color: $color-blue-dark;
 	}
 
-	//disabled styles
+	// Disabled styles.
 	&.is-disabled {
-		color: $color-grey!important;
 		border-color: $color-grey!important;
+		color: $color-grey!important;
 		cursor: auto;
 	}
 }//.blobselect
 
 
 
-//our selections
+// Our selections.
 .blobselect-selections {
-	width: calc(100% - 35px);
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
 	flex-direction: column;
+
+	width: calc(100% - 35px);
 	overflow: hidden;
+
 	word-wrap: break-word;
 }
 
+// An individual selection.
 .blobselect-selection {
 	padding: 5px 0;
 
+	// The selection is a placeholder.
 	&.is-placeholder {
 		color: $color-grey;
 		font-style: italic;
 	}
 
+	// The selection is part of a multiple,
+	// It needs an X.
 	.is-multiple & {
 		&:after {
-			content: '\00D7';
-			color: $color-red;
 			margin-left: .25em;
 			opacity: 0;
+			color: $color-red;
+			content: '\00D7';
 			transition: opacity $transition-speed;
 		}
 		&:hover {
@@ -122,7 +134,7 @@ $transition-speed: .3s;
 
 
 
-//our submit button
+// Our toggle button.
 .blobselect-button {
 	width: 35px;
 	height: 30px;
@@ -131,17 +143,21 @@ $transition-speed: .3s;
 	position: relative;
 
 	&:after {
-		content: '';
-		width: 0;
-		height: 0;
-		border-style: solid;
-		border-width: 10px 7.5px 0 7.5px;
-		border-color: $color-grey transparent transparent transparent;
 		position: absolute;
 		top: 50%;
 		left: 50%;
+
 		margin-top: -5px;
 		margin-left: -7.5px;
+		width: 0;
+		height: 0;
+
+		border-style: solid;
+		border-width: 10px 7.5px 0 7.5px;
+		border-color: $color-grey transparent transparent transparent;
+
+		content: '';
+
 		transition: border $transition-speed;
 	}
 
@@ -161,24 +177,29 @@ $transition-speed: .3s;
 
 
 
-//our dropdown
+// Our dropdown.
 .blobselect-items {
 	position: absolute;
 	top: 100%;
 	left: -1px;
 	right: -1px;
-	width: calc(100% + 2px);
-	color: $color-black;
-	background-color: $color-white;
-	transition: background $transition-speed, color $transition-speed, transform $transition-speed;
-	border: 1px solid $color-grey;
-	border-top: 0;
-	padding-bottom: 10px;
-	transform: scale(1, 0);
-	transform-origin: top center;
+
 	display: none;
 
-	//we are only using our pseudo-dropdown on big screens
+	padding-bottom: 10px;
+	width: calc(100% + 2px);
+
+	border: 1px solid $color-grey;
+	border-top: 0;
+	background-color: $color-white;
+
+	color: $color-black;
+
+	transform: scale(1, 0);
+	transform-origin: top center;
+	transition: background $transition-speed, color $transition-speed, transform $transition-speed;
+
+	// We are only using our pseudo-dropdown on big screens.
 	@media(min-width: $screen-tablet){
 		.is-opening & { display: block; }
 		.is-open & {
@@ -190,20 +211,22 @@ $transition-speed: .3s;
 	}
 }
 
-//the search field
+// The search field.
 .blobselect-item-search {
-	border-top: 1px dashed $color-blue-dark;
-	border-bottom: 1px dashed $color-blue-dark;
+	margin-bottom: 5px;
 	padding: 0 10px 0 35px;
 	height: 35px;
-	line-height: 35px;
-	font-size: .8rem;
+
 	outline: none;
-	opacity: .75;
-	transition: opacity $transition-speed;
-	margin-bottom: 5px;
+	border-top: 1px dashed $color-blue-dark;
+	border-bottom: 1px dashed $color-blue-dark;
 	background: transparent url(../img/search.svg) scroll 10px 10px no-repeat;
 	background-size: 15px 15px;
+	opacity: .75;
+
+	font-size: .8rem;
+
+	transition: opacity $transition-speed;
 
 	&:active,
 	&:focus,
@@ -212,31 +235,31 @@ $transition-speed: .3s;
 	}
 }
 
-//an optgroup label
+// An optgroup label.
 .blobselect-item-group {
 	&:first-child {
 		border-top: 1px dashed $color-blue-dark;
 	}
 
-	font-size: .8rem;
-	text-transform: uppercase;
-	font-weight: 700;
 	padding: 10px;
 	outline: none;
+	font-size: .8rem;
+	font-weight: 700;
+	text-transform: uppercase;
 
 	&.is-disabled { opacity: .5; }
 }
 
-//dropdown items
+// Dropdown items.
 .blobselect-item {
 	&:first-child {
 		border-top: 1px dashed $color-blue-dark;
 	}
 
-	font-size: .8rem;
-	text-transform: uppercase;
 	padding: 10px;
 	outline: none;
+	font-size: .8rem;
+	text-transform: uppercase;
 	transition: background $transition-speed, color $transition-speed;
 
 	&.has-group { padding-left: 30px; }
