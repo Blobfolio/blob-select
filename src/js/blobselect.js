@@ -1,10 +1,10 @@
 /**
 *
 * blob-select
-* Version: 2.0.0
+* Version: 2.0.1
 * https://github.com/Blobfolio/blob-select
 *
-* Copyright © 2017 Blobfolio, LLC <https://blobfolio.com>
+* Copyright © 2018 Blobfolio, LLC <https://blobfolio.com>
 *
 * This work is free. You can redistribute it and/or modify it under the
 * terms of the Do What The Fuck You Want To Public License, Version 2.
@@ -393,134 +393,107 @@
 			// Now gather data about all the items (options and
 			// optgroups). Start with the latter as they'll be sorted
 			// within themselves.
-			var optgroups = _find(this.$element, 'optgroup'),
+			var lastOptgroup = false,
+				ungrouped = [],
 				placeholderOption = this.$settings.placeholderOption.toLowerCase(),
-				row,
-				rows,
-				options;
-
-			// If there are optgroups...
-			if (optgroups.length) {
-				for (i=0; i<optgroups.length; i++) {
-					v = optgroups[i];
-					row = {
-						label: v.label || v.textContent || '',
-						value: '',
-						type: 'optgroup',
-						disabled: v.disabled,
-						selected: false,
-						placeholder: false,
-						focused: false,
-						grouped: false,
-					};
-					_sanitizeWhitespace(row.label);
-					tmp.items.push(row);
-
-					// Now pull its items.
-					rows = [];
-					options = v.querySelectorAll('option');
-
-					for (j=0; j<options.length; j++) {
-						v2 = options.item(j);
-						row = {
-							label: v2.label || v2.textContent || '',
-							value: v2.value,
-							type: 'option',
-							disabled: (v2.disabled || v.disabled),
-							selected: v2.selected,
-							placeholder: false,
-							focused: false,
-							grouped: true,
-						};
-						_sanitizeWhitespace(row.label);
-
-						// Placeholder is a little complicated to
-						// calculate.
-						row.placeholder = (
-							!row.label.length ||
-							(parseInt(v2.dataset.placeholder, 10) === 1) ||
-							(row.label.toLowerCase() === placeholderOption)
-						);
-						rows.push(row);
-					}
-					rows = this.sort(rows);
-
-					// Now add them to our main items list.
-					for (j=0; j<rows.length; j++) {
-						tmp.items.push(rows[j]);
-					}
-				}
-
-				// The last thing we need to do is add any ungrouped
-				// options that might exist.
 				rows = [];
-				for(i=0; i<this.$element.children.length; i++) {
-					v2 = this.$element.children[i];
-					if (v2.tagName === 'OPTION') {
+
+			// Loop through options!
+			for (i=0; i<this.$element.options.length; i++) {
+				v = this.$element.options[i];
+
+				// New Optgroup
+				if (
+					(lastOptgroup !== v.parentNode) &&
+					(
+						(false !== lastOptgroup) ||
+						(v.parentNode.tagName === 'OPTGROUP')
+					)
+				) {
+					// Close off last one.
+					if (false !== lastOptgroup) {
+						rows = this.sort(rows);
+						for (j=0; j<rows.length; j++) {
+							tmp.items.push(rows[j]);
+						}
+					}
+
+					if (v.parentNode.tagName === 'OPTGROUP') {
+						// Add the optgroup to our items.
 						row = {
-							label: v2.label || v2.textContent || '',
-							value: v2.value,
-							type: 'option',
-							disabled: v2.disabled,
-							selected: v2.selected,
+							label: v.parentNode.label || v.parentNode.textContent || '',
+							value: '',
+							type: 'optgroup',
+							disabled: v.parentNode.disabled,
+							selected: false,
 							placeholder: false,
 							focused: false,
 							grouped: false,
 						};
-						_sanitizeWhitespace(row.label);
+						row.label = _sanitizeWhitespace(row.label);
+						tmp.items.push(row);
 
-						// Placeholder is a little complicated to
-						// calculate.
-						row.placeholder = (
-							!row.label.length ||
-							(parseInt(v2.dataset.placeholder, 10) === 1) ||
-							(row.label.toLowerCase() === placeholderOption)
-						);
+						// Let the loop know.
+						lastOptgroup = v.parentNode;
+					}
+					else {
+						lastOptgroup = false;
+					}
 
-						// Bubble placeholders to the top.
-						if (row.placeholder) {
-							tmp.items.unshift(row);
-						}
-						else {
-							rows.push(row);
-						}
+					rows = [];
+				}
+
+				// Deal with the option.
+				row = {
+					label: v.label || v.textContent || '',
+					value: v.value,
+					type: 'option',
+					disabled: (v.disabled || v.parentNode.disabled),
+					selected: v.selected,
+					placeholder: false,
+					focused: false,
+					grouped: (false !== lastOptgroup),
+				};
+				row.label = _sanitizeWhitespace(row.label);
+
+				// Placeholder is a little complicated to
+				// calculate.
+				row.placeholder = (
+					!row.label.length ||
+					(parseInt(v.dataset.placeholder, 10) === 1) ||
+					(row.label.toLowerCase() === placeholderOption)
+				);
+
+				// Ungrouped item.
+				if (false === lastOptgroup) {
+					// Bubble placeholders straight to the top.
+					if (row.placeholder) {
+						tmp.items.unshift(row);
+					}
+					else {
+						ungrouped.push(row);
 					}
 				}
-				rows = this.sort(rows);
-
-				// Now add them to our main items list.
-				for (i=0; i<rows.length; i++) {
-					tmp.items.push(rows[i]);
+				// Grouped item.
+				else {
+					rows.push(row);
 				}
 			}
-			// If there are no groups, we just add everything to the
-			// pot!
-			else {
-				options = _find(this.$element, 'option');
-				for (i=0; i<options.length; i++) {
-					v2 = options[i];
-					row = {
-						label: v2.label || v2.textContent || '',
-						value: v2.value,
-						type: 'option',
-						disabled: v2.disabled,
-						selected: v2.selected,
-						placeholder: false,
-						grouped: false,
-					};
-					_sanitizeWhitespace(row.label);
 
-					// Placeholder is a little complicated to
-					// calculate.
-					row.placeholder = (
-						!row.label.length ||
-						(parseInt(v2.dataset.placeholder, 10) === 1) ||
-						(row.label.toLowerCase() === placeholderOption)
-					);
-
-					tmp.items.push(row);
+			// Sort and add any leftover optgroup rows.
+			if (rows.length) {
+				rows = this.sort(rows);
+				for (j=0; j<rows.length; j++) {
+					tmp.items.push(rows[j]);
 				}
-				tmp.items = this.sort(tmp.items);
+			}
+
+			// Sort and add any ungrouped rows.
+			if (ungrouped.length) {
+				ungrouped = this.sort(ungrouped);
+				for (j=0; j<ungrouped.length; j++) {
+					tmp.items.push(ungrouped[j]);
+				}
 			}
 
 			// Do we need to rebuild the elements?
