@@ -1,7 +1,7 @@
 /**
 *
 * blob-select
-* Version: 2.0.1
+* Version: 2.0.2
 * https://github.com/Blobfolio/blob-select
 *
 * Copyright © 2018 Blobfolio, LLC <https://blobfolio.com>
@@ -947,6 +947,9 @@
 		containerClick: function(e) {
 			e.stopPropagation();
 
+			// Close other instances, if any.
+			_closeOthers(this.$element);
+
 			// Don't do anything if disabled.
 			if (this.container.classList.contains('is-disabled')) {
 				if (this.$me.state === 'open') {
@@ -1022,6 +1025,9 @@
 				if (['tab','backspace'].indexOf(keyMapped) === -1) {
 					e.stopPropagation();
 
+					// Close other instances, if any.
+					_closeOthers(this.$element);
+
 					// Should we be adding the key to the search field?
 					if (this.$settings.search && keyPrintable) {
 						this.search.textContent = String.fromCharCode(key).toLowerCase();
@@ -1043,6 +1049,9 @@
 			else if (keyMapped === 'enter') {
 				e.stopPropagation();
 				e.preventDefault();
+
+				// Close other instances, if any.
+				_closeOthers(this.$element);
 
 				// Were we searching?
 				if (this.$search) {
@@ -2168,6 +2177,26 @@
 		else {
 			clickOutside = false;
 			document.querySelector('html').removeEventListener('click', _clickOutside);
+		}
+	};
+
+	/**
+	 * Close Others
+	 *
+	 * If interacting with one blob-select field, make sure any others
+	 * on the page are closed.
+	 *
+	 * @param DOMNode $me Current field.
+	 * @return void Nothing.
+	 */
+	var _closeOthers = function(me) {
+		var selects = _find(document, '.blobselect.is-open select');
+		if (selects.length) {
+			for (i=0; i<selects.length; i++) {
+				if (selects[i] !== me) {
+					selects[i].blobSelect.close();
+				}
+			}
 		}
 	};
 
