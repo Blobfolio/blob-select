@@ -2,7 +2,7 @@
     "name": "blob-select",
     "repo": "blobfolio/blob-select",
     "description": "A dependency-free Javascript plugin for styling SELECT elements with an emphasis on markup simplicity and performance.",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "scripts": [
         "dist/js/blobselect.min.js"
     ],
