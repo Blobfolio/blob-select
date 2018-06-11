@@ -1,53 +1,56 @@
 /**
-*
-* blob-select
-* Version: 2.0.2
-* https://github.com/Blobfolio/blob-select
-*
-* Copyright © 2018 Blobfolio, LLC <https://blobfolio.com>
-*
-* This work is free. You can redistribute it and/or modify it under the
-* terms of the Do What The Fuck You Want To Public License, Version 2.
-*
-* USE:
-*	<select data-blobselect='{...}'>
-*	<select data-blobselect-order-type="string" ...>
-*	document.getElementById('my-select').blobSelect.init({...})
-*
-*	select fields with data-blobselect* attributes are auto-initialized on load
-*	select fields can be manually initialized with:
-*		document.getElementById('myselect').blobSelect.init()
-*
-* OPTIONS:
-*	orderType (string, numeric, null)
-*		(string)
-*		Options will be resorted based on their values.
-*		Default: null (i.e. no sort)
-*	order (ASC, DESC)
-*		(string)
-*		Options will be resorted up or down.
-*		Default: ASC
-*	placeholder (string)
-*		Mimics an input's placeholder attribute; this text is displayed
-*		when the selection has no label.
-*		Default: ---
-*	placeholderOption (string)
-*		This text is used when an option has no label (i.e. in the
-*		dropdown).
-*		Default: ---
-*	search (bool)
-*		A contentEditable field is placed at the top of the menu to
-*		allow users to filter results.
-*		Default: false
-*	watch (int)
-*		Each blobSelect instance will watch for unexpected DOM changes
-*		every X milliseconds. This might be necessary when combining
-*		blob-select with a Javascript framework that might manipulate
-*		values *without* firing a change event.
-*		Default: false
-*
-**/
-(function(){
+ * Blob-select
+ *
+ * @version 2.0.3
+ * @author Blobfolio, LLC <hello@blobfolio.com>
+ * @package vue-blob-forms
+ * @license WTFPL <http://www.wtfpl.net>
+ *
+ * @see https://blobfolio.com
+ * @see https://github.com/Blobfolio/vue-blob-forms
+ *
+ * USE:
+ *	<select data-blobselect='{...}'>
+ *	<select data-blobselect-order-type="string" ...>
+ *	document.getElementById('my-select').blobSelect.init({...})
+ *
+ *	Select fields with data-blobselect* attributes are auto-initialized
+ *	on load.
+ *	Select fields can be manually initialized with:
+ *		document.getElementById('myselect').blobSelect.init()
+ *
+ * OPTIONS:
+ *	orderType (string, numeric, null)
+ *		(string)
+ *		Options will be resorted based on their values.
+ *		Default: null (i.e. no sort)
+ *	order (ASC, DESC)
+ *		(string)
+ *		Options will be resorted up or down.
+ *		Default: ASC
+ *	placeholder (string)
+ *		Mimics an input's placeholder attribute; this text is displayed
+ *		when the selection has no label.
+ *		Default: ---
+ *	placeholderOption (string)
+ *		This text is used when an option has no label (i.e. in the
+ *		dropdown).
+ *		Default: ---
+ *	search (bool)
+ *		A contentEditable field is placed at the top of the menu to
+ *		allow users to filter results.
+ *		Default: false
+ *	watch (int)
+ *		Each blobSelect instance will watch for unexpected DOM changes
+ *		every X milliseconds. This might be necessary when combining
+ * 		blob-select with a Javascript framework that might manipulate
+ *		values *without* firing a change event.
+ *		Default: false
+ *
+ **/
+
+/* global getEventListeners */
+(function() {
 
 	// -----------------------------------------------------------------
 	// Compatibility
@@ -55,7 +58,7 @@
 
 	// First things first, make sure we aren't trying to run code that
 	// the browser can't handle.
-	if(
+	if (
 		!('classList' in document.documentElement) ||
 		!('createRange' in document) ||
 		!('querySelector' in document && 'querySelectorAll' in document) ||
@@ -66,7 +69,7 @@
 	}
 
 	// A simple polyfill for .matches() support.
-	if(!Element.prototype.matches){
+	if (!Element.prototype.matches) {
 		Element.prototype.matches =
 			Element.prototype.matchesSelector ||
 			Element.prototype.mozMatchesSelector ||
@@ -74,10 +77,11 @@
 			Element.prototype.oMatchesSelector ||
 			Element.prototype.webkitMatchesSelector ||
 			function(s) {
-				var matches = (this.document || this.ownerDocument).querySelectorAll(s),
-					i = matches.length;
-				while (--i >= 0 && matches.item(i) !== this) {}
-				return i > -1;
+				var matches = (this.document || this.ownerDocument).querySelectorAll(s);
+				var i = matches.length;
+				/* eslint-disable-next-line */
+				while (0 <= --i && matches.item(i) !== this) {}
+				return -1 < i;
 			};
 	}
 
@@ -112,8 +116,8 @@
 	/**
 	 * Plugin Constructor
 	 *
-	 * @param DOMElement $el Element.
-	 * @return void Nothing.
+	 * @param {DOMElement} el Element.
+	 * @returns {void} Nothing.
 	 */
 	var blobSelect = function(el) {
 		this.$element = el;
@@ -167,7 +171,7 @@
 		/**
 		 * Does this appear to be initialized?
 		 *
-		 * @return bool True/false.
+		 * @returns {bool} True/false.
 		 */
 		isInitialized: function() {
 			return (this.container instanceof HTMLDivElement);
@@ -176,7 +180,7 @@
 		/**
 		 * Does this have an element?
 		 *
-		 * @return bool True/false.
+		 * @returns {bool} True/false.
 		 */
 		hasElement: function() {
 			return (this.$element instanceof HTMLSelectElement);
@@ -185,8 +189,8 @@
 		/**
 		 * Initialize
 		 *
-		 * @param mixed $args Runtime args.
-		 * @return bool True/false.
+		 * @param {mixed} args Runtime args.
+		 * @returns {bool} True/false.
 		 */
 		init: function(args) {
 			// Already initialized?
@@ -208,9 +212,9 @@
 		/**
 		 * Destroy
 		 *
-		 * @return bool True/false.
+		 * @returns {bool} True/false.
 		 */
-		destroy: function(args) {
+		destroy: function() {
 			if (!this.isInitialized()) {
 				return false;
 			}
@@ -222,7 +226,7 @@
 
 			// Remove the search field separately to help unbind its
 			// listeners.
-			if (this.search !== null) {
+			if (null !== this.search) {
 				_removeElement(this.search);
 			}
 
@@ -254,8 +258,8 @@
 		 * Settings can come as direct objects and/or from element
 		 * attributes. This merges the sources.
 		 *
-		 * @param mixed $args Runtime args.
-		 * @return bool True/false.
+		 * @param {mixed} args Runtime args.
+		 * @returns {bool} True/false.
 		 */
 		parseSettings: function(args) {
 			if (!this.hasElement()) {
@@ -266,7 +270,7 @@
 			// places. The first step is to build an object containing
 			// all of them. Then we can use the parseSettings function
 			// to make sure they make sense.
-			if ((typeof args === 'string') && args) {
+			if (('string' === typeof args) && args) {
 				args = _parseJSON(args);
 			}
 			else if (!_isObject(args)) {
@@ -280,7 +284,7 @@
 
 			// Options can be specified individually too.
 			var flagsKeys = Object.keys(flags);
-			for (i=0; i<flagsKeys.length; i++) {
+			for (let i = 0; i < flagsKeys.length; i++) {
 				if (this.$element.dataset[flagsKeys[i]]) {
 					// Apply the setting.
 					var settingsKey = flagsKeys[i].substr(10, 1).toLowerCase() + flagsKeys[i].substr(11);
@@ -299,8 +303,8 @@
 		/**
 		 * Save Settings
 		 *
-		 * @param mixed $args Runtime args.
-		 * @return bool True/false.
+		 * @param {mixed} args Runtime args.
+		 * @returns {bool} True/false.
 		 */
 		saveSettings: function(args) {
 			if (!this.hasElement()) {
@@ -313,13 +317,13 @@
 			// Examine individual settings closer.
 			if (parsed.orderType) {
 				parsed.orderType = parsed.orderType.toLowerCase();
-				if (['string','numeric'].indexOf(parsed.orderType) === -1) {
+				if (-1 === ['string', 'numeric'].indexOf(parsed.orderType)) {
 					parsed.orderType = '';
 				}
 			}
 
 			parsed.order = parsed.order.toUpperCase();
-			if (['ASC','DESC'].indexOf(parsed.order) === -1) {
+			if (-1 === ['ASC', 'DESC'].indexOf(parsed.order)) {
 				parsed.order = 'ASC';
 			}
 
@@ -327,7 +331,7 @@
 			parsed.placeholderOption = _sanitizeWhitespace(parsed.placeholderOption);
 
 			parsed.watch = parseInt(parsed.watch, 10) || 0;
-			if (parsed.watch < 0) {
+			if (0 > parsed.watch) {
 				parsed.watch = 0;
 			}
 
@@ -342,7 +346,7 @@
 			// Start a new watch task.
 			if (this.$settings.watch) {
 				var me = this;
-				this.$watch = setInterval(function(){
+				this.$watch = setInterval(function() {
 					me.buildData();
 				}, this.$settings.watch);
 			}
@@ -360,7 +364,7 @@
 		 *
 		 * Build the main wrappers that achieve our styles.
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		buildData: function() {
 			if (!this.hasElement()) {
@@ -369,12 +373,12 @@
 
 			// The parent element is easy.
 			var tmp = {
-					disabled: this.$element.disabled,
-					required: this.$element.required,
-					multiple: this.$element.multiple,
-					items: [],
-				},
-				selected = [];
+				disabled: this.$element.disabled,
+				required: this.$element.required,
+				multiple: this.$element.multiple,
+				items: [],
+			};
+			var selected = [];
 
 			// Update the data if there are changes.
 			if (tmp.disabled !== this.$me.disabled) {
@@ -393,32 +397,32 @@
 			// Now gather data about all the items (options and
 			// optgroups). Start with the latter as they'll be sorted
 			// within themselves.
-			var lastOptgroup = false,
-				ungrouped = [],
-				placeholderOption = this.$settings.placeholderOption.toLowerCase(),
-				rows = [];
+			var lastOptgroup = false;
+			var ungrouped = [];
+			var placeholderOption = this.$settings.placeholderOption.toLowerCase();
+			var rows = [];
 
 			// Loop through options!
-			for (i=0; i<this.$element.options.length; i++) {
-				v = this.$element.options[i];
+			for (let i = 0; i < this.$element.options.length; i++) {
+				let v = this.$element.options[i];
 
 				// New Optgroup
 				if (
 					(lastOptgroup !== v.parentNode) &&
 					(
 						(false !== lastOptgroup) ||
-						(v.parentNode.tagName === 'OPTGROUP')
+						('OPTGROUP' === v.parentNode.tagName)
 					)
 				) {
 					// Close off last one.
 					if (false !== lastOptgroup) {
 						rows = this.sort(rows);
-						for (j=0; j<rows.length; j++) {
+						for (let j = 0; j < rows.length; j++) {
 							tmp.items.push(rows[j]);
 						}
 					}
 
-					if (v.parentNode.tagName === 'OPTGROUP') {
+					if ('OPTGROUP' === v.parentNode.tagName) {
 						// Add the optgroup to our items.
 						row = {
 							label: v.parentNode.label || v.parentNode.textContent || '',
@@ -444,7 +448,7 @@
 				}
 
 				// Deal with the option.
-				row = {
+				let row = {
 					label: v.label || v.textContent || '',
 					value: v.value,
 					type: 'option',
@@ -460,7 +464,7 @@
 				// calculate.
 				row.placeholder = (
 					!row.label.length ||
-					(parseInt(v.dataset.placeholder, 10) === 1) ||
+					(1 === parseInt(v.dataset.placeholder, 10)) ||
 					(row.label.toLowerCase() === placeholderOption)
 				);
 
@@ -483,7 +487,7 @@
 			// Sort and add any leftover optgroup rows.
 			if (rows.length) {
 				rows = this.sort(rows);
-				for (j=0; j<rows.length; j++) {
+				for (let j = 0; j < rows.length; j++) {
 					tmp.items.push(rows[j]);
 				}
 			}
@@ -491,7 +495,7 @@
 			// Sort and add any ungrouped rows.
 			if (ungrouped.length) {
 				ungrouped = this.sort(ungrouped);
-				for (j=0; j<ungrouped.length; j++) {
+				for (let j = 0; j < ungrouped.length; j++) {
 					tmp.items.push(ungrouped[j]);
 				}
 			}
@@ -502,7 +506,7 @@
 				this.$items = tmp.items;
 
 				// Update our selected/disabled lists.
-				for (i=0; i<this.$items.length; i++) {
+				for (let i = 0; i < this.$items.length; i++) {
 					if (this.$items[i].selected && !this.$items[i].disabled) {
 						selected.push(i);
 					}
@@ -529,10 +533,10 @@
 		 *
 		 * Collect information about the main object and its items.
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		buildContainer: function() {
-			if (this.container !== null) {
+			if (null !== this.container) {
 				return false;
 			}
 
@@ -582,7 +586,7 @@
 			}
 
 			// Watch for element changes.
-			this.$element.addEventListener('change', function(){
+			this.$element.addEventListener('change', function() {
 				if (!me.$lock) {
 					me.buildData();
 				}
@@ -600,7 +604,7 @@
 		/**
 		 * Build Search
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		buildSearch: function() {
 			if (!this.isInitialized()) {
@@ -608,12 +612,12 @@
 			}
 
 			// Search is off but we have the field.
-			if (!this.$settings.search && this.search !== null) {
+			if (!this.$settings.search && null !== this.search) {
 				_removeElement(this.search);
 				this.search = null;
 			}
 			// Search is on but we have no field.
-			else if(this.$settings.search && this.search === null) {
+			else if (this.$settings.search && null === this.search) {
 				this.search = document.createElement('div');
 				this.search.classList.add('blobselect-item-search');
 				this.search.setAttribute('type', 'text');
@@ -633,30 +637,30 @@
 		/**
 		 * Build Items
 		 *
-		 * @param bool $force Force.
-		 * @return void Nothing.
+		 * @param {bool} force Force.
+		 * @returns {void} Nothing.
 		 */
 		buildItems: function(force) {
-			if (this.items === null) {
+			if (null === this.items) {
 				return;
 			}
 
 			force = !!force;
 			this.$search = '';
 
-			var tmp,
-				me = this;
+			var tmp;
+			var me = this;
 
 			// Force a rebuild if the items don't match data.
 			if (!force) {
 				// Any new or removed items?
-				var oldValues = [],
-					newValues = [],
-					label;
+				var oldValues = [];
+				var newValues = [];
+				let value;
 
 				// Find the values we're internally storing.
-				for (i=0; i<this.$items.length; i++) {
-					if (this.$items[i].type === 'optgroup') {
+				for (let i = 0; i < this.$items.length; i++) {
+					if ('optgroup' === this.$items[i].type) {
 						value = '_optgroup_' + this.$items[i].label;
 					}
 					else {
@@ -666,17 +670,17 @@
 				}
 
 				// And find the current SELECT values.
-				for (i=0; i<this.items.children.length; i++) {
+				for (let i = 0; i < this.items.children.length; i++) {
 					value = null;
 
 					if (this.items.children[i].classList.contains('blobselect-item')) {
 						value = this.items.children[i].dataset.value;
 					}
-					else if(this.items.children[i].classList.contains('blobselect-item-group')) {
+					else if (this.items.children[i].classList.contains('blobselect-item-group')) {
 						value = '_optgroup_' + this.items.children[i].dataset.label;
 					}
 
-					if (value !== null) {
+					if (null !== value) {
 						oldValues.push(value);
 					}
 				}
@@ -693,13 +697,13 @@
 
 			// Forcefully rebuild all the items.
 			if (force) {
-				var newItems = [],
-					tabIndex = 1;
-				for (i=0; i<this.$items.length; i++) {
+				var newItems = [];
+				var tabIndex = 1;
+				for (let i = 0; i < this.$items.length; i++) {
 					tmp = document.createElement('div');
 
 					// Optgroup-specific options.
-					if (this.$items[i].type === 'optgroup') {
+					if ('optgroup' === this.$items[i].type) {
 						tmp.classList.add('blobselect-item-group');
 						tmp.textContent = this.$items[i].label;
 					}
@@ -738,11 +742,11 @@
 				_removeElement(_find(this.items, '.blobselect-item, .blobselect-item-group'));
 
 				// And insert the ones!
-				for (i=0; i<newItems.length; i++) {
+				for (let i = 0; i < newItems.length; i++) {
 					this.items.appendChild(newItems[i]);
 
 					// Nothing else to do for optgroups.
-					if (newItems[i].dataset.type === 'optgroup') {
+					if ('optgroup' === newItems[i].dataset.type) {
 						continue;
 					}
 
@@ -763,7 +767,7 @@
 			// unnecessary DOM mutations and event binding.
 			else {
 				var key = -1;
-				for (i=0; i<this.items.children.length; i++) {
+				for (let i = 0; i < this.items.children.length; i++) {
 					// We only want optgroups and options.
 					if (
 						!this.items.children[i].classList.contains('blobselect-item') &&
@@ -806,17 +810,19 @@
 
 					// Type.
 					if (this.$items[key].type !== this.items.children[i].dataset.type) {
-						if (this.$items[key].type === 'optgroup') {
+						if ('optgroup' === this.$items[key].type) {
 							this.items.children[i].classList.add('blobselect-item-group');
 							this.items.children[i].classList.remove('blobselect-item');
 
 							// Remove events.
 							try {
 								var fieldEvents = getEventListeners(this.items.children[i]);
-								for (j=0; j<fieldEvents.length; j++) {
+								for (let j = 0; j < fieldEvents.length; j++) {
 									fieldEvents[j].remove();
 								}
-							} catch (Ex) {}
+							}
+							/* eslint-disable-next-line */
+							catch (Ex) {}
 						}
 						else {
 							this.items.children[i].classList.add('blobselect-item-group');
@@ -837,7 +843,7 @@
 						this.items.children[i].setAttribute('data-type', this.$items[key].type);
 					}
 
-					// textContent().
+					// TextContent().
 					var textContent = this.$items[key].label;
 					if (this.$items[key].placeholder) {
 						textContent = this.$settings.placeholderOption;
@@ -852,33 +858,31 @@
 		/**
 		 * Build Selections
 		 *
-		 * @param bool $force Force.
-		 * @return void Nothing.
+		 * @param {bool} force Force.
+		 * @returns {void} Nothing.
 		 */
 		buildSelections: function(force) {
-			if (this.selections === null) {
+			if (null === this.selections) {
 				return;
 			}
 
 			force = !!force;
 
-			var tmp,
-				me = this;
+			var tmp;
 
 			// Force a rebuild if the selections don't match the data.
 			if (!force) {
 				// Any new or removed items?
-				var oldValues = [],
-					newValues = [],
-					label;
+				var oldValues = [];
+				var newValues = [];
 
 				// What should be selected?
-				for (i=0; i<this.$selectedItems.length; i++) {
+				for (let i = 0; i < this.$selectedItems.length; i++) {
 					newValues.push(this.$items[this.$selectedItems[i]].value);
 				}
 
 				// And what do we have?
-				for (i=0; i<this.selections.children.length; i++) {
+				for (let i = 0; i < this.selections.children.length; i++) {
 					if (this.selections.children[i].classList.contains('blobselect-selection')) {
 						oldValues.push(this.selections.children[i].dataset.value);
 					}
@@ -898,7 +902,7 @@
 				var newItems = [];
 
 				// Start by creating the new ones.
-				for (i=0; i<this.$selectedItems.length; i++) {
+				for (let i = 0; i < this.$selectedItems.length; i++) {
 					tmp = document.createElement('div');
 					tmp.classList.add('blobselect-selection');
 					tmp.setAttribute('data-value', this.$items[this.$selectedItems[i]].value);
@@ -920,7 +924,7 @@
 				_removeElement(_find(this.selections, '.blobselect-selection'));
 
 				// And insert the new ones into the DOM.
-				for (i=0; i<newItems.length; i++) {
+				for (let i = 0; i < newItems.length; i++) {
 					this.selections.appendChild(newItems[i]);
 				}
 			}
@@ -941,8 +945,8 @@
 		/**
 		 * Container Clicked
 		 *
-		 * @param event $e Event.
-		 * @return void Nothing.
+		 * @param {event} e Event.
+		 * @returns {void} Nothing.
 		 */
 		containerClick: function(e) {
 			e.stopPropagation();
@@ -952,7 +956,7 @@
 
 			// Don't do anything if disabled.
 			if (this.container.classList.contains('is-disabled')) {
-				if (this.$me.state === 'open') {
+				if ('open' === this.$me.state) {
 					return this.close();
 				}
 
@@ -968,7 +972,7 @@
 			}
 
 			// The actual select field.
-			else if(e.target === this.$element) {
+			else if (e.target === this.$element) {
 				return;
 			}
 
@@ -979,7 +983,7 @@
 			}
 
 			// An item.
-			else if(e.target.classList.contains('blobselect-item')) {
+			else if (e.target.classList.contains('blobselect-item')) {
 				// Select it if it isn't disabled.
 				if (!e.target.classList.contains('is-disabled')) {
 					this.select(e.target);
@@ -989,7 +993,7 @@
 			}
 
 			// Toggle container state.
-			if (this.$me.state === 'closed') {
+			if ('closed' === this.$me.state) {
 				return this.open();
 			}
 			else {
@@ -1000,29 +1004,29 @@
 		/**
 		 * Container Key Press
 		 *
-		 * @param event $e Event.
-		 * @return void Nothing.
+		 * @param {event} e Event.
+		 * @returns {void} Nothing.
 		 */
 		containerKey: function(e) {
-			var key = e.keyCode,
-				map = {
-					8: 'backspace',
-					9: 'tab',
-					13: 'enter',
-					27: 'escape',
-					32: 'space',
-					37: 'left',
-					38: 'up',
-					39: 'right',
-					40: 'down',
-				},
-				keyMapped = map[key] || 'other',
-				keyPrintable = _isPrintableKey(key);
+			var key = e.keyCode;
+			var map = {
+				8: 'backspace',
+				9: 'tab',
+				13: 'enter',
+				27: 'escape',
+				32: 'space',
+				37: 'left',
+				38: 'up',
+				39: 'right',
+				40: 'down',
+			};
+			var keyMapped = map[key] || 'other';
+			var keyPrintable = _isPrintableKey(key);
 
 			// A closed menu.
-			if (this.$me.state === 'closed') {
+			if ('closed' === this.$me.state) {
 				// Almost always we want to open the menu.
-				if (['tab','backspace'].indexOf(keyMapped) === -1) {
+				if (-1 === ['tab', 'backspace'].indexOf(keyMapped)) {
 					e.stopPropagation();
 
 					// Close other instances, if any.
@@ -1040,13 +1044,13 @@
 			}
 
 			// Escape key.
-			else if (keyMapped === 'escape') {
+			else if ('escape' === keyMapped) {
 				e.stopPropagation();
 				return this.close();
 			}
 
 			// Enter on current item.
-			else if (keyMapped === 'enter') {
+			else if ('enter' === keyMapped) {
 				e.stopPropagation();
 				e.preventDefault();
 
@@ -1070,12 +1074,12 @@
 			}
 
 			// Navigation?
-			else if (['tab', 'up', 'down', 'left', 'right'].indexOf(keyMapped) !== -1) {
+			else if (-1 !== ['tab', 'up', 'down', 'left', 'right'].indexOf(keyMapped)) {
 				e.stopPropagation();
 
 				// Maybe exit the search field.
 				if (e.target.classList.contains('blobselect-item-search')) {
-					if (['tab', 'up', 'down'].indexOf(keyMapped) !== -1) {
+					if (-1 !== ['tab', 'up', 'down'].indexOf(keyMapped)) {
 						return this.traverseItems('current');
 					}
 
@@ -1083,12 +1087,12 @@
 				}
 
 				// Whereto?
-				var direction = ['tab','down','right'].indexOf(keyMapped) !== -1 ? 'next' : 'back';
+				var direction = -1 !== ['tab', 'down', 'right'].indexOf(keyMapped) ? 'next' : 'back';
 				return this.traverseItems(direction);
 			}
 
 			// Search typing?
-			else if(e.target.classList.contains('blobselect-item-search')) {
+			else if (e.target.classList.contains('blobselect-item-search')) {
 				e.stopPropagation();
 
 				// Refilter items?
@@ -1105,21 +1109,21 @@
 		/**
 		 * Open Container
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		open: function() {
 			// Already open or not initialized, we're done.
 			if (
 				!this.isInitialized() ||
-				(this.$me.state === 'open') ||
-				(this.$me.state === 'opening')
+				('open' === this.$me.state) ||
+				('opening' === this.$me.state)
 			) {
 				return;
 			}
 
 			// Close any other open select fields that might exist.
 			var selects = _find(document, '.blobselect.is-open select');
-			for (i=0; i<selects.length; i++) {
+			for (let i = 0; i < selects.length; i++) {
 				selects[i].blobSelect.close();
 			}
 
@@ -1148,18 +1152,18 @@
 		/**
 		 * Close Container
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		close: function() {
 			// Not initialized or open, can't be closed.
 			if (
 				!this.isInitialized() ||
-				(this.$me.state !== 'open')
+				('open' !== this.$me.state)
 			) {
 				return;
 			}
 
-			this.container.classList.remove('is-open','is-opening');
+			this.container.classList.remove('is-open', 'is-opening');
 			this.items.setAttribute('data-focused', -1);
 			this.$me.state = 'closed';
 		},
@@ -1170,7 +1174,7 @@
 		 * Fire a change event on the SELECT element so things get
 		 * updated in the other direction.
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		triggerChange: function() {
 			if (this.isInitialized()) {
@@ -1187,8 +1191,8 @@
 		/**
 		 * Select an Item
 		 *
-		 * @param DOMElement $el Element.
-		 * @return bool True/false.
+		 * @param {DOMElement} el Element.
+		 * @returns {bool} True/false.
 		 */
 		select: function(el) {
 			// Nothing to do.
@@ -1201,13 +1205,13 @@
 				return this.close();
 			}
 
-			var value = el.dataset.value,
-				options = this.getOptionsByValue(value);
+			var value = el.dataset.value;
+			var options = this.getOptionsByValue(value);
 
 			if (options.length) {
 				// We have to run through everything for multiple.
 				if (this.$me.multiple) {
-					for (i=0; i<options.length; i++) {
+					for (let i = 0; i < options.length; i++) {
 						// Turn off.
 						if (options[i].selected) {
 							options[i].selected = 0;
@@ -1234,8 +1238,8 @@
 		/**
 		 * Unselect an Item
 		 *
-		 * @param DOMElement $el Element.
-		 * @return bool True/false.
+		 * @param {DOMElement} el Element.
+		 * @returns {bool} True/false.
 		 */
 		unselect: function(el) {
 			if (
@@ -1247,10 +1251,10 @@
 				return this.close();
 			}
 
-			var value = el.dataset.value || '',
-				options = this.getOptionsByValue(value);
+			var value = el.dataset.value || '';
+			var options = this.getOptionsByValue(value);
 
-			for (i=0; i<options.length; i++) {
+			for (let i = 0; i < options.length; i++) {
 				options[i].selected = 0;
 			}
 
@@ -1262,20 +1266,20 @@
 		/**
 		 * Filter Items
 		 *
-		 * @return void Nothing.
+		 * @returns {void} Nothing.
 		 */
 		filterItems: _debounce(function() {
 			if (!this.isInitialized() || !this.$settings.search) {
 				return false;
 			}
 
-			var me = this,
-				items;
+			var me = this;
+			var items;
 
 			// Nothing to search?
 			if (!me.$search) {
 				items = _find(me.items, '.is-not-match, .is-match');
-				for (i=0; i<items.length; i++) {
+				for (let i = 0; i < items.length; i++) {
 					if (items[i].classList.contains('is-not-match')) {
 						items[i].classList.remove('is-not-match');
 					}
@@ -1288,16 +1292,16 @@
 				return;
 			}
 
-			var needle = RegExp(_sanitizeRegExp(me.$search), 'i'),
-				replaceNeedle = RegExp(_sanitizeRegExp(me.$search), 'gi'),
-				matches = 0;
+			var needle = RegExp(_sanitizeRegExp(me.$search), 'i');
+			var replaceNeedle = RegExp(_sanitizeRegExp(me.$search), 'gi');
+			var matches = 0;
 
 			items = _find(me.items, '.blobselect-item');
-			for (i=0; i<items.length; i++) {
-				var haystack = items[i].dataset.label,
-					match = needle.test(haystack),
-					classMatch = items[i].classList.contains('is-match'),
-					classNoMatch = items[i].classList.contains('is-not-match');
+			for (let i = 0; i < items.length; i++) {
+				var haystack = items[i].dataset.label;
+				var match = needle.test(haystack);
+				var classMatch = items[i].classList.contains('is-match');
+				var classNoMatch = items[i].classList.contains('is-not-match');
 
 				// Note that we have a match.
 				if (match) {
@@ -1319,7 +1323,7 @@
 						items[i].classList.add('is-match');
 					}
 
-					items[i].innerHTML = haystack.replace(replaceNeedle, "<mark>$&</mark>");
+					items[i].innerHTML = haystack.replace(replaceNeedle, '<mark>$&</mark>');
 				}
 				else {
 					if (!classNoMatch) {
@@ -1334,7 +1338,7 @@
 			// Show everything if showing nothing.
 			if (!matches) {
 				items = _find(me.items, '.is-not-match, .is-match');
-				for (i=0; i<items.length; i++) {
+				for (let i = 0; i < items.length; i++) {
 					if (items[i].classList.contains('is-not-match')) {
 						items[i].classList.remove('is-not-match');
 					}
@@ -1358,17 +1362,17 @@
 		/**
 		 * Move Through Items
 		 *
-		 * @param string $direction Direction.
-		 * @return void Nothing.
+		 * @param {string} direction Direction.
+		 * @returns {void} Nothing.
 		 */
 		traverseItems: function(direction) {
-			var active = this.getActiveItem(),
-				items = _find(this.items, '.blobselect-item:not(.is-disabled):not(.is-not-match)'),
-				activeIndex = items.indexOf(active) || -1,
-				choice = null;
+			var active = this.getActiveItem();
+			var items = _find(this.items, '.blobselect-item:not(.is-disabled):not(.is-not-match)');
+			var activeIndex = items.indexOf(active) || -1;
+			var choice = null;
 
 			// The active is impossible.
-			if (activeIndex === -1) {
+			if (-1 === activeIndex) {
 				if (items.length) {
 					activeIndex = 0;
 				}
@@ -1378,18 +1382,18 @@
 			}
 
 			// Go to the current.
-			if (direction === 'current') {
+			if ('current' === direction) {
 				choice = items[activeIndex];
 			}
 
 			// Back.
-			else if (direction === 'back') {
-				choice = activeIndex > 0 ? items[activeIndex - 1] : items[0];
+			else if ('back' === direction) {
+				choice = 0 < activeIndex ? items[activeIndex - 1] : items[0];
 			}
 
 			// Next.
-			else if (direction === 'next') {
-				choice = activeIndex < items.length -1 ? items[activeIndex + 1] : items[activeIndex.length - 1];
+			else if ('next' === direction) {
+				choice = activeIndex < items.length - 1 ? items[activeIndex + 1] : items[activeIndex.length - 1];
 			}
 
 			return choice.focus();
@@ -1399,12 +1403,12 @@
 		/**
 		 * Get Active Item
 		 *
-		 * @return DOMElement|bool Active or false.
+		 * @returns {DOMElement|bool} Active or false.
 		 */
 		getActiveItem: function() {
-			var choice,
-				items = _find(this.items, '.blobselect-item'),
-				focused = parseInt(this.items.dataset.focused, 10) || -1;
+			var choice;
+			var items = _find(this.items, '.blobselect-item');
+			var focused = parseInt(this.items.dataset.focused, 10) || -1;
 
 			// Make sure the selection makes sense.
 			if (focused > items.length - 1) {
@@ -1413,7 +1417,7 @@
 			}
 
 			// Try the focused one first.
-			if (focused !== -1) {
+			if (-1 !== focused) {
 				choice = items[focused];
 			}
 
@@ -1424,7 +1428,7 @@
 				choice.classList.contains('is-not-match')
 			) {
 				choice = null;
-				for (i=0; i<items.length; i++) {
+				for (let i = 0; i < items.length; i++) {
 					if (
 						!items[i].classList.contains('is-disabled') &&
 						!items[i].classList.contains('is-not-match')
@@ -1441,9 +1445,9 @@
 		/**
 		 * Get Item By Value
 		 *
-		 * @param string $value Value.
-		 * @param bool $disabled Allow disabled.
-		 * @return object Item(s).
+		 * @param {string} value Value.
+		 * @param {bool} disabled Allow disabled.
+		 * @returns {object} Item(s).
 		 */
 		getItemsByValue: function(value, disabled) {
 			disabled = !!disabled;
@@ -1451,9 +1455,9 @@
 
 			var out = [];
 
-			for (i=0; i<this.$items.length; i++) {
+			for (let i = 0; i < this.$items.length; i++) {
 				if (
-					(this.$items[i].type === 'option') &&
+					('option' === this.$items[i].type) &&
 					(this.$items[i].value === value) &&
 					(disabled || !this.$items[i].disabled)
 				) {
@@ -1467,18 +1471,18 @@
 		/**
 		 * Get Options By Value
 		 *
-		 * @param string $value Value.
-		 * @param bool $disabled Allow disabled.
-		 * @return object Item(s).
+		 * @param {string} value Value.
+		 * @param {bool} disabled Allow disabled.
+		 * @returns {object} Item(s).
 		 */
 		getOptionsByValue: function(value, disabled) {
 			disabled = !!disabled;
 			value = value + '';
 
-			var out = [],
-				options = _find(this.$element, 'option');
+			var out = [];
+			var options = _find(this.$element, 'option');
 
-			for (i=0; i<options.length; i++) {
+			for (let i = 0; i < options.length; i++) {
 				if (
 					(options[i].value === value) &&
 					(disabled || !options[i].disabled)
@@ -1501,8 +1505,8 @@
 		/**
 		 * Sort Items
 		 *
-		 * @param object $arr Array.
-		 * @return object Array.
+		 * @param {object} arr Array.
+		 * @returns {object} Array.
 		 */
 		sort: function(arr) {
 			if (!Array.isArray(arr) || !arr.length) {
@@ -1515,18 +1519,18 @@
 			}
 
 			switch (this.$settings.orderType + this.$settings.order) {
-				case 'stringASC':
-					arr.sort(_sortStringAsc);
-					break;
-				case 'stringDESC':
-					arr.sort(_sortStringDesc);
-					break;
-				case 'numericASC':
-					arr.sort(_sortNumericAsc);
-					break;
-				case 'numericDESC':
-					arr.sort(_sortNumericDesc);
-					break;
+			case 'stringASC':
+				arr.sort(_sortStringAsc);
+				break;
+			case 'stringDESC':
+				arr.sort(_sortStringDesc);
+				break;
+			case 'numericASC':
+				arr.sort(_sortNumericAsc);
+				break;
+			case 'numericDESC':
+				arr.sort(_sortNumericDesc);
+				break;
 			}
 
 			return arr;
@@ -1549,23 +1553,29 @@
 	 * Add the blobSelect object to the HTMLSelectElement prototype so
 	 * it can be accessed via el.blobSelect.
 	 *
-	 * @return void Nothing.
+	 * @returns {void} Nothing.
 	 */
 	Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
-		//thanks to @guoguo12 for the weird IE fix!
-		get: function getter () {
+		/**
+		 * Getter.
+		 *
+		 * Thanks to @guoguo12 for this weird IE fix.
+		 *
+		 * @returns {self} blobSelect.
+		 */
+		get: function getter() {
 			Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
-				get: undefined
+				get: undefined,
 			});
 			Object.defineProperty(this, 'blobSelect', {
-				value: new blobSelect(this)
+				value: new blobSelect(this),
 			});
 			Object.defineProperty(HTMLSelectElement.prototype, 'blobSelect', {
-				get: getter
+				get: getter,
 			});
 			return this.blobSelect;
 		},
-		configurable: true
+		configurable: true,
 	});
 
 	// ----------------------------------------------------------------- end extension
@@ -1582,12 +1592,12 @@
 	 * Find any <SELECT> fields that should be blob-selected and run the
 	 * init() handler on them.
 	 *
-	 * @return void Nothing.
+	 * @returns {void} Nothing.
 	 */
-	document.addEventListener('DOMContentLoaded', function(){
+	document.addEventListener('DOMContentLoaded', function() {
 		var selects = document.querySelectorAll('select[data-blobselect], select[data-blobselect-watch], select[data-blobselect-search], select[data-blobselect-placeholder], select[data-blobselect-placeholder-option], select[data-blobselect-order], select[data-blobselect-order-type]');
 
-		for (i=0; i<selects.length; i++) {
+		for (let i = 0; i < selects.length; i++) {
 			var el = selects.item(i);
 			el.blobSelect.init();
 		}
@@ -1610,13 +1620,22 @@
 	 *
 	 * @see {https://davidwalsh.name/javascript-clone}
 	 *
-	 * @param mixed $src Source variable.
-	 * @return mixed Copy.
+	 * @param {mixed} src Source variable.
+	 * @returns {mixed} Copy.
 	 */
 	function _clone(src) {
-		// Internal copy helper.
+		/**
+		 * Internal Clone Helper
+		 *
+		 * @param {mixed} dest Destination.
+		 * @param {mixed} source Source.
+		 * @param {function} copyFunc Copy function.
+		 * @returns {mixed} Clone.
+		 */
 		function mixin(dest, source, copyFunc) {
-			var name, s, i, empty = {};
+			var name;
+			var s;
+			var empty = {};
 			for (name in source) {
 				s = source[name];
 				if (!(name in dest) || (dest[name] !== s && (!(name in empty) || empty[name] !== s))) {
@@ -1626,12 +1645,12 @@
 			return dest;
 		}
 
-		if (!src || typeof src != "object" || Object.prototype.toString.call(src) === "[object Function]") {
+		if (!src || 'object' !== typeof src || '[object Function]' === Object.prototype.toString.call(src)) {
 			// Covers null, undefined, any non-object, or function.
 			return src;
 		}
 
-		if (src.nodeType && "cloneNode" in src) {
+		if (src.nodeType && 'cloneNode' in src) {
 			// DOM Node.
 			return src.cloneNode(true); // Node
 		}
@@ -1646,20 +1665,22 @@
 			return new RegExp(src);   // RegExp
 		}
 
-		var r, i, l;
+		var r;
+		// This is an array.
 		if (src instanceof Array) {
-			// Array.
 			r = [];
-			for (i = 0, l = src.length; i < l; ++i) {
+			let l = src.length;
+			for (let i = 0; i < l; ++i) {
 				if (i in src) {
 					r.push(_clone(src[i]));
 				}
 			}
 		}
-		else{
-			// Some other object type.
+		// This is some other object type.
+		else {
 			r = src.constructor ? new src.constructor() : {};
 		}
+
 		return mixin(r, src, _clone);
 	}
 
@@ -1669,9 +1690,9 @@
 	 * We can make some assumptions based on the limited use case of
 	 * this plugin.
 	 *
-	 * @param mixed $value Value.
-	 * @param string $type Type.
-	 * @return Cast value.
+	 * @param {mixed} value Value.
+	 * @param {string} type Type.
+	 * @returns {Cast} value.
 	 */
 	function _cast(value, type) {
 		var valueType = typeof value;
@@ -1680,50 +1701,50 @@
 		}
 
 		switch (type) {
-			case 'string':
-				try {
-					if (!value) {
-						value = '';
-					}
-					else {
-						value = String(value);
-					}
-				} catch (Ex) {
+		case 'string':
+			try {
+				if (!value) {
 					value = '';
 				}
-
-				break;
-			case 'number':
-				try {
-					if (valueType === 'boolean') {
-						value = value ? 1 : 0;
-					}
-					else {
-						value = Number(value);
-					}
-				} catch (Ex) {
-					value = 0;
+				else {
+					value = String(value);
 				}
+			} catch (Ex) {
+				value = '';
+			}
 
-				break;
-			case 'boolean':
-				try {
-					// Let's try to catch boolish strings.
-					if (valueType === 'string') {
-						var valueLower = value.toLowerCase();
-						if (['off','0','false'].indexOf(valueLower) !== -1) {
-							value = false;
-						}
-						else if(['on','1','true'].indexOf(valueLower) !== -1) {
-							value = true;
-						}
-					}
-					value = !!value;
-				} catch (Ex) {
-					value = false;
+			break;
+		case 'number':
+			try {
+				if ('boolean' === valueType) {
+					value = value ? 1 : 0;
 				}
+				else {
+					value = Number(value);
+				}
+			} catch (Ex) {
+				value = 0;
+			}
 
-				break;
+			break;
+		case 'boolean':
+			try {
+				// Let's try to catch boolish strings.
+				if ('string' === valueType) {
+					var valueLower = value.toLowerCase();
+					if (-1 !== ['off', '0', 'false'].indexOf(valueLower)) {
+						value = false;
+					}
+					else if (-1 !== ['on', '1', 'true'].indexOf(valueLower)) {
+						value = true;
+					}
+				}
+				value = !!value;
+			} catch (Ex) {
+				value = false;
+			}
+
+			break;
 		}
 
 		return value;
@@ -1735,27 +1756,17 @@
 	 * Javascript does not get very specific with types. This functions
 	 * similarly to typeof but discounts things like Null or Undefined.
 	 *
-	 * @param mixed $value Value.
-	 * @return bool True/false.
+	 * @param {mixed} value Value.
+	 * @returns {bool} True/false.
 	 */
 	function _isObject(value) {
 		var valueType = typeof value;
 
 		return (
-			(valueType !== 'undefined') &&
-			(value !== null) &&
-			(valueType === 'object')
+			('undefined' !== valueType) &&
+			(null !== value) &&
+			('object' === valueType)
 		);
-	}
-
-	/**
-	 * Is Array
-	 *
-	 * Test if an item is an actual, sequentially-index Array, or some
-	 * other kind of object.
-	 */
-	function _isArray(value) {
-		return _isObject(value) && Array.isArray(value);
 	}
 
 	/**
@@ -1764,29 +1775,29 @@
 	 * Stuff user arguments into a default mold. Note: This function is
 	 * not recursive.
 	 *
-	 * @param object $args User arguments.
-	 * @param object $defaults Default arguments.
-	 * @param bool $strict Strict.
-	 * @return object Parsed arguments.
+	 * @param {object} args User arguments.
+	 * @param {object} defaults Default arguments.
+	 * @param {bool} strict Strict.
+	 * @returns {object} Parsed arguments.
 	 */
 	function _parseArgs(args, defaults, strict) {
 		// Sanitize types.
-		if (typeof defaults !== 'object') {
+		if ('object' !== typeof defaults) {
 			return {};
 		}
-		if (typeof args !== 'object') {
+		if ('object' !== typeof args) {
 			return defaults;
 		}
-		if (strict === null || strict === undefined) {
+		if (null === strict || strict === undefined) {
 			strict = true;
 		}
 		else {
 			strict = !!strict;
 		}
 
-		var parsed = _clone(defaults),
-			keys = Object.keys(args),
-			keysLength = keys.length;
+		var parsed = _clone(defaults);
+		var keys = Object.keys(args);
+		var keysLength = keys.length;
 
 		// Do we need to be here?
 		if (!keysLength) {
@@ -1795,14 +1806,14 @@
 
 		// Run through the user arguments and include anything in the
 		// template.
-		for (i=0; i<keysLength; i++) {
-			if (typeof parsed[keys[i]] !== 'undefined') {
+		for (let i = 0; i < keysLength; i++) {
+			if ('undefined' !== typeof parsed[keys[i]]) {
 				var argValue = _clone(args[keys[i]]);
 
 				// Typecast result.
-				if (strict && (parsed[keys[i]] !== null)) {
-					var argType = typeof argValue,
-						defaultType = typeof parsed[keys[i]];
+				if (strict && (null !== parsed[keys[i]])) {
+					var argType = typeof argValue;
+					var defaultType = typeof parsed[keys[i]];
 
 					if (argType !== defaultType) {
 						argValue = _cast(argValue, defaultType);
@@ -1824,21 +1835,23 @@
 	 * interprets data more similarly to native Javascript (it isn't
 	 * super picky about quotes, etc.
 	 *
-	 * @param string $str String.
-	 * @return object JSON.
+	 * @param {string} str String.
+	 * @returns {object} JSON.
 	 */
 	function _parseJSON(str) {
 		// Already an object?
-		if (typeof str === 'object') {
+		if ('object' === typeof str) {
 			return str;
 		}
 
 		try {
 			var j = _JSON5.parse(str);
-			if (j !== null) {
+			if (null !== j) {
 				return j;
 			}
-		} catch (Ex) { console.warn(Ex); }
+		} catch (Ex) {
+			console.warn(Ex);
+		}
 
 		return {};
 	}
@@ -1849,16 +1862,16 @@
 	 * This is used for e.g. search matching, etc., where user input
 	 * might contain characters that would mess up a test.
 	 *
-	 * @param string $str String.
-	 * @return string Sanitized string.
+	 * @param {string} str String.
+	 * @returns {string} Sanitized string.
 	 */
 	function _sanitizeRegExp(str) {
 		try {
 			str = str + '';
-			return str.replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&");
-		} catch (Ex) {}
-
-		return '';
+			return str.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
+		} catch (Ex) {
+			return '';
+		}
 	}
 
 	/**
@@ -1867,16 +1880,16 @@
 	 * Whitespace is easy to handle inconsistently; let's just assume
 	 * that one-space/two-space variations are never intentional.
 	 *
-	 * @param string $str String.
-	 * @return string Sanitized string.
+	 * @param {string} str String.
+	 * @returns {string} Sanitized string.
 	 */
 	function _sanitizeWhitespace(str) {
 		try {
 			str = str + '';
 			return str.replace(/\s{1,}/g, ' ').trim();
-		} catch (Ex) {}
-
-		return '';
+		} catch (Ex) {
+			return '';
+		}
 	}
 
 	// ----------------------------------------------------------------- end data helpers
@@ -1892,8 +1905,9 @@
 	 *
 	 * Return query results as an array.
 	 *
-	 * @param DOMElement $el Element.
-	 * @param string $selector Selector.
+	 * @param {DOMElement} el Element.
+	 * @param {string} selector Selector.
+	 * @returns {Array} Elements.
 	 */
 	function _find(el, selector) {
 		var out = [];
@@ -1902,11 +1916,13 @@
 			selector = selector + '';
 			var results = el.querySelectorAll(selector);
 			if (results.length) {
-				for (i=0; i<results.length; i++) {
+				for (let i = 0; i < results.length; i++) {
 					out.push(results.item(i));
 				}
 			}
-		} catch (Ex) {}
+		} catch (Ex) {
+			return out;
+		}
 
 		return out;
 	}
@@ -1914,9 +1930,9 @@
 	/**
 	 * Find Closest Element
 	 *
-	 * @param DOMElement $el Reference element.
-	 * @param string $selector Selector.
-	 * @return DOMElement|bool Element or false.
+	 * @param {DOMElement} el Reference element.
+	 * @param {string} selector Selector.
+	 * @returns {DOMElement|bool} Element or false.
 	 */
 	function _closest(el, selector) {
 		try {
@@ -1934,7 +1950,9 @@
 					return el;
 				}
 			}
-		} catch (Ex) {}
+		} catch (Ex) {
+			return false;
+		}
 
 		return false;
 	}
@@ -1942,8 +1960,8 @@
 	/**
 	 * Remove Element
 	 *
-	 * @param mixed $el Element(s).
-	 * @return void Nothing.
+	 * @param {mixed} el Element(s).
+	 * @returns {void} Nothing.
 	 */
 	function _removeElement(el) {
 		if (!Array.isArray(el) && el instanceof HTMLElement) {
@@ -1959,7 +1977,7 @@
 		}
 
 		// Run through the list backwards and delete everyone.
-		for (i=keys.length - 1; i >= 0; i--) {
+		for (let i = keys.length - 1; 0 <= i; i--) {
 			// This must be an element.
 			if (!(el[keys[i]] instanceof HTMLElement)) {
 				continue;
@@ -1968,10 +1986,12 @@
 			// Unbind events.
 			try {
 				var fieldEvents = getEventListeners(el[keys[i]]);
-				for (j=0; j<fieldEvents.length; j++) {
+				for (var j = 0; j < fieldEvents.length; j++) {
 					fieldEvents[j].remove();
 				}
-			} catch (Ex) {}
+			} catch (Ex) {
+				continue;
+			}
 
 			// Remove the field.
 			el[keys[i]].parentNode.removeChild(el[keys[i]]);
@@ -1989,16 +2009,16 @@
 	/**
 	 * Sort Strings Asc
 	 *
-	 * @param object $a First.
-	 * @param object $b Second.
-	 * @return int Position.
+	 * @param {object} a First.
+	 * @param {object} b Second.
+	 * @returns {int} Position.
 	 */
 	function _sortStringAsc(a, b) {
 		// Placeholders bubble to top.
 		if (a.placeholder) {
 			return -1;
 		}
-		else if(b.placeholder) {
+		else if (b.placeholder) {
 			return 1;
 		}
 
@@ -2009,16 +2029,16 @@
 	/**
 	 * Sort Strings Desc
 	 *
-	 * @param object $a First.
-	 * @param object $b Second.
-	 * @return int Position.
+	 * @param {object} a First.
+	 * @param {object} b Second.
+	 * @returns {int} Position.
 	 */
 	function _sortStringDesc(a, b) {
 		// Placeholders bubble to top.
 		if (a.placeholder) {
 			return -1;
 		}
-		else if(b.placeholder) {
+		else if (b.placeholder) {
 			return 1;
 		}
 
@@ -2029,21 +2049,21 @@
 	/**
 	 * Sort Numeric Asc
 	 *
-	 * @param object $a First.
-	 * @param object $b Second.
-	 * @return int Position.
+	 * @param {object} a First.
+	 * @param {object} b Second.
+	 * @returns {int} Position.
 	 */
 	function _sortNumericAsc(a, b) {
 		// Placeholders bubble to top.
 		if (a.placeholder) {
 			return -1;
 		}
-		else if(b.placeholder) {
+		else if (b.placeholder) {
 			return 1;
 		}
 
-		var atext = Number(a.label.replace(/[^\d\.]/g, '')) || 0,
-			btext = Number(b.label.replace(/[^\d\.]/g, '')) || 0;
+		var atext = Number(a.label.replace(/[^\d.]/g, '')) || 0;
+		var btext = Number(b.label.replace(/[^\d.]/g, '')) || 0;
 
 		// Otherwise just sort by label.
 		return atext < btext ? -1 : 1;
@@ -2052,21 +2072,21 @@
 	/**
 	 * Sort Numeric Desc
 	 *
-	 * @param object $a First.
-	 * @param object $b Second.
-	 * @return int Position.
+	 * @param {object} a First.
+	 * @param {object} b Second.
+	 * @returns {int} Position.
 	 */
 	function _sortNumericDesc(a, b) {
 		// Placeholders bubble to top.
 		if (a.placeholder) {
 			return -1;
 		}
-		else if(b.placeholder) {
+		else if (b.placeholder) {
 			return 1;
 		}
 
-		var atext = Number(a.label.replace(/[^\d\.]/g, '')) || 0,
-			btext = Number(b.label.replace(/[^\d\.]/g, '')) || 0;
+		var atext = Number(a.label.replace(/[^\d.]/g, '')) || 0;
+		var btext = Number(b.label.replace(/[^\d.]/g, '')) || 0;
 
 		// Otherwise just sort by label.
 		return atext > btext ? -1 : 1;
@@ -2078,13 +2098,13 @@
 	 * Selections are sorted by their effective textContent, and always
 	 * in ascending order.
 	 *
-	 * @param object $a First.
-	 * @param object $b Second.
-	 * @return int Position.
+	 * @param {object} a First.
+	 * @param {object} b Second.
+	 * @returns {int} Position.
 	 */
 	function _sortTextContent(a, b) {
-		var atext = a.textContent.toLowerCase(),
-			btext = b.textContent.toLowerCase();
+		var atext = a.textContent.toLowerCase();
+		var btext = b.textContent.toLowerCase();
 
 		if (atext === btext) {
 			return 0;
@@ -2106,12 +2126,12 @@
 	 *
 	 * Move the cursor position to the end of a field.
 	 *
-	 * @param DOMElement $el Element.
-	 * @return void Nothing.
+	 * @param {DOMElement} el Element.
+	 * @returns {void} Nothing.
 	 */
 	function _cursorToEnd(el) {
-		var searchRange = document.createRange(),
-			searchSelection;
+		var searchRange = document.createRange();
+		var searchSelection;
 
 		searchRange.selectNodeContents(el);
 		searchRange.collapse(false);
@@ -2127,16 +2147,16 @@
 	 * a field's value, like the letter "a", versus others that
 	 * shouldn't, like ESC.
 	 *
-	 * @param int $key Key code.
-	 * @return bool True/false.
+	 * @param {int} key Key code.
+	 * @returns {bool} True/false.
 	 */
 	function _isPrintableKey(key) {
 		return (
-			(key > 47 && key < 58) ||	// Number keys.
-			(key > 64 && key < 91) ||	// Letter keys.
-			(key > 95 && key < 112) ||	// Numpad keys.
-			(key > 185 && key < 193) ||	// Punctuation.
-			(key > 218 && key < 223)	// Brackets.
+			(47 < key && 58 > key) ||	// Number keys.
+			(64 < key && 91 > key) ||	// Letter keys.
+			(95 < key && 112 > key) ||	// Numpad keys.
+			(185 < key && 193 > key) ||	// Punctuation.
+			(218 < key && 223 > key)	// Brackets.
 		);
 	}
 
@@ -2156,20 +2176,20 @@
 	 *
 	 * This is bound to document.html.
 	 *
-	 * @param event $e Event.
-	 * @return void Nothing.
+	 * @param {event} e Event.
+	 * @returns {void} Nothing.
 	 */
 	var _clickOutside = function(e) {
 		var selects = _find(document, '.blobselect select');
 		if (selects.length) {
 			// If a blob-select field was clicked, we can leave.
-			if (_closest(e.target, '.blobselect') !== false) {
+			if (false !== _closest(e.target, '.blobselect')) {
 				return true;
 			}
 
 			// Otherwise close anything that is open.
 			selects = _find(document, '.blobselect.is-open select');
-			for (i=0; i<selects.length; i++) {
+			for (let i = 0; i < selects.length; i++) {
 				selects[i].blobSelect.close();
 			}
 		}
@@ -2186,13 +2206,13 @@
 	 * If interacting with one blob-select field, make sure any others
 	 * on the page are closed.
 	 *
-	 * @param DOMNode $me Current field.
-	 * @return void Nothing.
+	 * @param {DOMNode} me Current field.
+	 * @returns {void} Nothing.
 	 */
 	var _closeOthers = function(me) {
 		var selects = _find(document, '.blobselect.is-open select');
 		if (selects.length) {
-			for (i=0; i<selects.length; i++) {
+			for (let i = 0; i < selects.length; i++) {
 				if (selects[i] !== me) {
 					selects[i].blobSelect.close();
 				}
@@ -2203,30 +2223,45 @@
 	/**
 	 * Debounce
 	 *
-	 * @param function $fn Callback.
-	 * @param bool $wait Wait.
-	 * @param bool $no_postpone Do it now.
+	 * @param {function} fn Callback.
+	 * @param {bool} wait Wait.
+	 * @param {bool} no_postpone Do it now.
+	 * @returns {void} Nothing.
 	 */
-	function _debounce(fn, wait, no_postpone){
-		var args, context, result, timeout;
+	function _debounce(fn, wait, no_postpone) {
+		var args;
+		var context;
+		var timeout;
 		var executed = true;
 
-		// Execute the callback function.
-		function ping(){
-			result = fn.apply(context || this, args || []);
+		/**
+		 * Execute Callback
+		 *
+		 * @returns {void} Nothing.
+		 */
+		function ping() {
+			fn.apply(context || this, args || []);
 			context = args = null;
 			executed = true;
 		}
 
-		// Cancel the timeout.
+		/**
+		 * Cancel Timeout
+		 *
+		 * @returns {void} Nothing.
+		 */
 		function cancel() {
-			if(timeout){
+			if (timeout) {
 				clearTimeout(timeout);
 				timeout = null;
 			}
 		}
 
-		// Generate a wrapper function to return.
+		/**
+		 * Return Wrapper
+		 *
+		 * @returns {void} Nothing.
+		 */
 		function wrapper() {
 			context = this;
 			args = arguments;
@@ -2254,15 +2289,15 @@
 	 * To make comparisons easier, and to cut down on memory waste,
 	 * values are stored as a very simple checksum.
 	 *
-	 * @param mixed $value Value.
-	 * @return string Hash.
+	 * @param {mixed} value Value.
+	 * @returns {string} Hash.
 	 */
 	function _checksum(value) {
 		try {
 			// We need a string. For objects, JSON will suffice.
-			if (typeof value === 'object') {
+			if ('object' === typeof value) {
 				value = JSON.stringify(value) || false;
-				if (value === false) {
+				if (false === value) {
 					return 0;
 				}
 			}
@@ -2275,13 +2310,11 @@
 		}
 
 		// Declare our variables.
-		var hash = 0,
-			strlen = value.length,
-			i,
-			c;
+		var hash = 0;
+		var strlen = value.length;
 
-		for (i=0; i<strlen; i++) {
-			c = value.charCodeAt(i);
+		for (let i = 0; i < strlen; i++) {
+			var c = value.charCodeAt(i);
 			hash = ((hash << 5) - hash) + c;
 			hash = hash & hash; // Convert to 32-bit integer.
 		}
@@ -2297,10 +2330,9 @@
 	 * @see https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
 	 * @see http://json5.org/
 	 */
-	/* jshint ignore:start */
-	var _JSON5={};
-	_JSON5.parse=function(){"use strict";var r,e,n,t,i,f,o={"'":"'",'"':'"',"\\":"\\","/":"/","\n":"",b:"\b",f:"\f",n:"\n",r:"\r",t:"\t"},a=[" ","\t","\r","\n","\v","\f"," ","\ufeff"],u=function(r){return""===r?"EOF":"'"+r+"'"},c=function(t){var f=new SyntaxError;throw f.message=t+" at line "+e+" column "+n+" of the JSON5 data. Still to read: "+JSON.stringify(i.substring(r-1,r+19)),f.at=r,f.lineNumber=e,f.columnNumber=n,f},s=function(f){return f&&f!==t&&c("Expected "+u(f)+" instead of "+u(t)),t=i.charAt(r),r++,n++,("\n"===t||"\r"===t&&"\n"!==l())&&(e++,n=0),t},l=function(){return i.charAt(r)},d=function(){var r=t;for("_"!==t&&"$"!==t&&(t<"a"||t>"z")&&(t<"A"||t>"Z")&&c("Bad identifier as unquoted key");s()&&("_"===t||"$"===t||t>="a"&&t<="z"||t>="A"&&t<="Z"||t>="0"&&t<="9");)r+=t;return r},m=function(){var r,e="",n="",i=10;if("-"!==t&&"+"!==t||(e=t,s(t)),"I"===t)return("number"!=typeof(r=h())||isNaN(r))&&c("Unexpected word for number"),"-"===e?-r:r;if("N"===t)return r=h(),isNaN(r)||c("expected word to be NaN"),r;switch("0"===t&&(n+=t,s(),"x"===t||"X"===t?(n+=t,s(),i=16):t>="0"&&t<="9"&&c("Octal literal")),i){case 10:for(;t>="0"&&t<="9";)n+=t,s();if("."===t)for(n+=".";s()&&t>="0"&&t<="9";)n+=t;if("e"===t||"E"===t)for(n+=t,s(),"-"!==t&&"+"!==t||(n+=t,s());t>="0"&&t<="9";)n+=t,s();break;case 16:for(;t>="0"&&t<="9"||t>="A"&&t<="F"||t>="a"&&t<="f";)n+=t,s()}if(r="-"===e?-n:+n,isFinite(r))return r;c("Bad number")},N=function(){var r,e,n,i,f="";if('"'===t||"'"===t)for(n=t;s();){if(t===n)return s(),f;if("\\"===t)if(s(),"u"===t){for(i=0,e=0;e<4&&(r=parseInt(s(),16),isFinite(r));e+=1)i=16*i+r;f+=String.fromCharCode(i)}else if("\r"===t)"\n"===l()&&s();else{if("string"!=typeof o[t])break;f+=o[t]}else{if("\n"===t)break;f+=t}}c("Bad string")},b=function(){"/"!==t&&c("Not an inline comment");do{if(s(),"\n"===t||"\r"===t)return void s()}while(t)},p=function(){"*"!==t&&c("Not a block comment");do{for(s();"*"===t;)if(s("*"),"/"===t)return void s("/")}while(t);c("Unterminated block comment")},v=function(){"/"!==t&&c("Not a comment"),s("/"),"/"===t?b():"*"===t?p():c("Unrecognized comment")},y=function(){for(;t;)if("/"===t)v();else{if(!(a.indexOf(t)>=0))return;s()}},h=function(){switch(t){case"t":return s("t"),s("r"),s("u"),s("e"),!0;case"f":return s("f"),s("a"),s("l"),s("s"),s("e"),!1;case"n":return s("n"),s("u"),s("l"),s("l"),null;case"I":return s("I"),s("n"),s("f"),s("i"),s("n"),s("i"),s("t"),s("y"),1/0;case"N":return s("N"),s("a"),s("N"),NaN}c("Unexpected "+u(t))},w=function(){var r=[];if("["===t)for(s("["),y();t;){if("]"===t)return s("]"),r;if(","===t?c("Missing array element"):r.push(f()),y(),","!==t)return s("]"),r;s(","),y()}c("Bad array")},g=function(){var r,e={};if("{"===t)for(s("{"),y();t;){if("}"===t)return s("}"),e;if(r='"'===t||"'"===t?N():d(),y(),s(":"),e[r]=f(),y(),","!==t)return s("}"),e;s(","),y()}c("Bad object")};return f=function(){switch(y(),t){case"{":return g();case"[":return w();case'"':case"'":return N();case"-":case"+":case".":return m();default:return t>="0"&&t<="9"?m():h()}},function(o,a){var u;return i=String(o),r=0,e=1,n=1,t=" ",u=f(),y(),t&&c("Syntax error"),"function"==typeof a?function r(e,n){var t,i,f=e[n];if(f&&"object"==typeof f)for(t in f)Object.prototype.hasOwnProperty.call(f,t)&&(void 0!==(i=r(f,t))?f[t]=i:delete f[t]);return a.call(e,n,f)}({"":u},""):u}}();
-	/* jshint ignore:end */
+	var _JSON5 = {};
+	/* eslint-disable-next-line */
+	_JSON5.parse = function() {"use strict";var r,e,n,t,i,f,o={"'":"'",'"':'"',"\\":"\\","/":"/","\n":"",b:"\b",f:"\f",n:"\n",r:"\r",t:"\t"},a=[" ","\t","\r","\n","\v","\f"," ","\ufeff"],u=function(r){return""===r?"EOF":"'"+r+"'"},c=function(t){var f=new SyntaxError;throw f.message=t+" at line "+e+" column "+n+" of the JSON5 data. Still to read: "+JSON.stringify(i.substring(r-1,r+19)),f.at=r,f.lineNumber=e,f.columnNumber=n,f},s=function(f){return f&&f!==t&&c("Expected "+u(f)+" instead of "+u(t)),t=i.charAt(r),r++,n++,("\n"===t||"\r"===t&&"\n"!==l())&&(e++,n=0),t},l=function(){return i.charAt(r)},d=function(){var r=t;for("_"!==t&&"$"!==t&&(t<"a"||t>"z")&&(t<"A"||t>"Z")&&c("Bad identifier as unquoted key");s()&&("_"===t||"$"===t||t>="a"&&t<="z"||t>="A"&&t<="Z"||t>="0"&&t<="9");)r+=t;return r},m=function(){var r,e="",n="",i=10;if("-"!==t&&"+"!==t||(e=t,s(t)),"I"===t)return("number"!=typeof(r=h())||isNaN(r))&&c("Unexpected word for number"),"-"===e?-r:r;if("N"===t)return r=h(),isNaN(r)||c("expected word to be NaN"),r;switch("0"===t&&(n+=t,s(),"x"===t||"X"===t?(n+=t,s(),i=16):t>="0"&&t<="9"&&c("Octal literal")),i){case 10:for(;t>="0"&&t<="9";)n+=t,s();if("."===t)for(n+=".";s()&&t>="0"&&t<="9";)n+=t;if("e"===t||"E"===t)for(n+=t,s(),"-"!==t&&"+"!==t||(n+=t,s());t>="0"&&t<="9";)n+=t,s();break;case 16:for(;t>="0"&&t<="9"||t>="A"&&t<="F"||t>="a"&&t<="f";)n+=t,s()}if(r="-"===e?-n:+n,isFinite(r))return r;c("Bad number")},N=function(){var r,e,n,i,f="";if('"'===t||"'"===t)for(n=t;s();){if(t===n)return s(),f;if("\\"===t)if(s(),"u"===t){for(i=0,e=0;e<4&&(r=parseInt(s(),16),isFinite(r));e+=1)i=16*i+r;f+=String.fromCharCode(i)}else if("\r"===t)"\n"===l()&&s();else{if("string"!=typeof o[t])break;f+=o[t]}else{if("\n"===t)break;f+=t}}c("Bad string")},b=function(){"/"!==t&&c("Not an inline comment");do{if(s(),"\n"===t||"\r"===t)return void s()}while(t)},p=function(){"*"!==t&&c("Not a block comment");do{for(s();"*"===t;)if(s("*"),"/"===t)return void s("/")}while(t);c("Unterminated block comment")},v=function(){"/"!==t&&c("Not a comment"),s("/"),"/"===t?b():"*"===t?p():c("Unrecognized comment")},y=function(){for(;t;)if("/"===t)v();else{if(!(a.indexOf(t)>=0))return;s()}},h=function(){switch(t){case"t":return s("t"),s("r"),s("u"),s("e"),!0;case"f":return s("f"),s("a"),s("l"),s("s"),s("e"),!1;case"n":return s("n"),s("u"),s("l"),s("l"),null;case"I":return s("I"),s("n"),s("f"),s("i"),s("n"),s("i"),s("t"),s("y"),1/0;case"N":return s("N"),s("a"),s("N"),NaN}c("Unexpected "+u(t))},w=function(){var r=[];if("["===t)for(s("["),y();t;){if("]"===t)return s("]"),r;if(","===t?c("Missing array element"):r.push(f()),y(),","!==t)return s("]"),r;s(","),y()}c("Bad array")},g=function(){var r,e={};if("{"===t)for(s("{"),y();t;){if("}"===t)return s("}"),e;if(r='"'===t||"'"===t?N():d(),y(),s(":"),e[r]=f(),y(),","!==t)return s("}"),e;s(","),y()}c("Bad object")};return f=function(){switch(y(),t){case"{":return g();case"[":return w();case'"':case"'":return N();case"-":case"+":case".":return m();default:return t>="0"&&t<="9"?m():h()}},function(o,a){var u;return i=String(o),r=0,e=1,n=1,t=" ",u=f(),y(),t&&c("Syntax error"),"function"==typeof a?function r(e,n){var t,i,f=e[n];if(f&&"object"==typeof f)for(t in f)Object.prototype.hasOwnProperty.call(f,t)&&(void 0!==(i=r(f,t))?f[t]=i:delete f[t]);return a.call(e,n,f)}({"":u},""):u}}();
 
 	// ----------------------------------------------------------------- end misc
 

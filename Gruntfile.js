@@ -42,13 +42,13 @@ module.exports = function(grunt) {
 		// Javascript.
 		eslint: {
 			check: {
-				src: ['src/js/custom/**/*.js'],
+				src: ['src/js/**/*.js'],
 			},
 			fix: {
 				options: {
 					fix: true,
 				},
-				src: ['src/js/custom/**/*.js'],
+				src: ['src/js/**/*.js'],
 			}
 		},
 		uglify: {
@@ -85,15 +85,15 @@ module.exports = function(grunt) {
 		notify: {
 			css: {
 				options:{
-					title: "CSS Files built",
-					message: "SASS and Post CSS task complete"
+					title: "CSS Done",
+					message: "CSS has been linted, compiled, and minified."
 				}
 			},
 
 			js: {
 				options: {
-					title: "JS Files built",
-					message: "Uglify and JSHint task complete"
+					title: "Javascript Done",
+					message: "JS has been linted, compiled, and minified."
 				}
 			}
 		}
@@ -110,7 +110,7 @@ module.exports = function(grunt) {
 	// Tasks.
 	grunt.registerTask('default', ['css', 'javascript']);
 	grunt.registerTask('css', ['sass', 'postcss']);
-	grunt.registerTask('javascript', ['jshint', 'uglify']);
+	grunt.registerTask('javascript', ['eslint', 'uglify']);
 
 	grunt.event.on('watch', function(action, filepath, target) {
 	  grunt.log.writeln(target + ': ' + filepath + ' has ' + action);
