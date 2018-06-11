@@ -213,6 +213,10 @@ $transition-speed: .3s;
 
 // The search field.
 .blobselect-item-search {
+	display: flex;
+	align-items: center;
+	line-height: 35px;
+
 	margin-bottom: 5px;
 	padding: 0 10px 0 35px;
 	height: 35px;
