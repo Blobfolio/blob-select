@@ -38,13 +38,7 @@ blob-select additionally provides support for:
 
 ## Requirements
 
-blob-select does not require any Javascript frameworks, however browsers must support the following:
-* [classList](http://caniuse.com/#feat=classlist) (IE10+)
-* [querySelector](http://caniuse.com/#feat=queryselector) + [querySelectorAll](http://caniuse.com/#feat=queryselector) (IE8+)
-* [JSON](http://caniuse.com/#search=JSON) (IE8+)
-
-If these requirements are not met, blob-select will exit without manipulating the DOM.
-
+blob-select does not require any specialJavascript frameworks. It is compatible with all major modern browsers and IE 11.
 
 &nbsp;
 
