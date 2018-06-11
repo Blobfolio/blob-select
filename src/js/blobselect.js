@@ -284,7 +284,7 @@
 
 			// Options can be specified individually too.
 			const flagsKeys = Object.keys(flags);
-			for (let i = 0; i < flagsKeys.length; i++) {
+			for (let i = 0; i < flagsKeys.length; ++i) {
 				if (this.$element.dataset[flagsKeys[i]]) {
 					// Apply the setting.
 					let settingsKey = flagsKeys[i].substr(10, 1).toLowerCase() + flagsKeys[i].substr(11);
@@ -404,7 +404,7 @@
 			let row;
 
 			// Loop through options!
-			for (let i = 0; i < this.$element.options.length; i++) {
+			for (let i = 0; i < this.$element.options.length; ++i) {
 				let v = this.$element.options[i];
 
 				// New Optgroup
@@ -418,7 +418,7 @@
 					// Close off last one.
 					if (false !== lastOptgroup) {
 						rows = this.sort(rows);
-						for (let j = 0; j < rows.length; j++) {
+						for (let j = 0; j < rows.length; ++j) {
 							tmp.items.push(rows[j]);
 						}
 					}
@@ -488,7 +488,7 @@
 			// Sort and add any leftover optgroup rows.
 			if (rows.length) {
 				rows = this.sort(rows);
-				for (let j = 0; j < rows.length; j++) {
+				for (let j = 0; j < rows.length; ++j) {
 					tmp.items.push(rows[j]);
 				}
 			}
@@ -496,7 +496,7 @@
 			// Sort and add any ungrouped rows.
 			if (ungrouped.length) {
 				ungrouped = this.sort(ungrouped);
-				for (let j = 0; j < ungrouped.length; j++) {
+				for (let j = 0; j < ungrouped.length; ++j) {
 					tmp.items.push(ungrouped[j]);
 				}
 			}
@@ -507,7 +507,7 @@
 				this.$items = tmp.items;
 
 				// Update our selected/disabled lists.
-				for (let i = 0; i < this.$items.length; i++) {
+				for (let i = 0; i < this.$items.length; ++i) {
 					if (this.$items[i].selected && !this.$items[i].disabled) {
 						selected.push(i);
 					}
@@ -660,7 +660,7 @@
 				let newValues = [];
 
 				// Find the values we're internally storing.
-				for (let i = 0; i < this.$items.length; i++) {
+				for (let i = 0; i < this.$items.length; ++i) {
 					if ('optgroup' === this.$items[i].type) {
 						value = '_optgroup_' + this.$items[i].label;
 					}
@@ -671,7 +671,7 @@
 				}
 
 				// And find the current SELECT values.
-				for (let i = 0; i < this.items.children.length; i++) {
+				for (let i = 0; i < this.items.children.length; ++i) {
 					value = null;
 
 					if (this.items.children[i].classList.contains('blobselect-item')) {
@@ -700,7 +700,7 @@
 			if (force) {
 				let newItems = [];
 				let tabIndex = 1;
-				for (let i = 0; i < this.$items.length; i++) {
+				for (let i = 0; i < this.$items.length; ++i) {
 					tmp = document.createElement('div');
 
 					// Optgroup-specific options.
@@ -710,7 +710,7 @@
 					}
 					// Option-specific options.
 					else {
-						tabIndex++;
+						++tabIndex;
 						tmp.tabIndex = tabIndex;
 						tmp.classList.add('blobselect-item');
 						if (this.$items[i].placeholder) {
@@ -743,7 +743,7 @@
 				_removeElement(_find(this.items, '.blobselect-item, .blobselect-item-group'));
 
 				// And insert the ones!
-				for (let i = 0; i < newItems.length; i++) {
+				for (let i = 0; i < newItems.length; ++i) {
 					this.items.appendChild(newItems[i]);
 
 					// Nothing else to do for optgroups.
@@ -768,7 +768,7 @@
 			// unnecessary DOM mutations and event binding.
 			else {
 				let key = -1;
-				for (let i = 0; i < this.items.children.length; i++) {
+				for (let i = 0; i < this.items.children.length; ++i) {
 					// We only want optgroups and options.
 					if (
 						!this.items.children[i].classList.contains('blobselect-item') &&
@@ -777,7 +777,7 @@
 						continue;
 					}
 
-					key++;
+					++key;
 
 					// Placeholder.
 					if (this.$items[key].placeholder !== this.items.children[i].classList.contains('is-placeholder')) {
@@ -818,7 +818,7 @@
 							// Remove events.
 							try {
 								const fieldEvents = getEventListeners(this.items.children[i]);
-								for (let j = 0; j < fieldEvents.length; j++) {
+								for (let j = 0; j < fieldEvents.length; ++j) {
 									fieldEvents[j].remove();
 								}
 							}
@@ -877,12 +877,12 @@
 				let newValues = [];
 
 				// What should be selected?
-				for (let i = 0; i < this.$selectedItems.length; i++) {
+				for (let i = 0; i < this.$selectedItems.length; ++i) {
 					newValues.push(this.$items[this.$selectedItems[i]].value);
 				}
 
 				// And what do we have?
-				for (let i = 0; i < this.selections.children.length; i++) {
+				for (let i = 0; i < this.selections.children.length; ++i) {
 					if (this.selections.children[i].classList.contains('blobselect-selection')) {
 						oldValues.push(this.selections.children[i].dataset.value);
 					}
@@ -902,7 +902,7 @@
 				let newItems = [];
 
 				// Start by creating the new ones.
-				for (let i = 0; i < this.$selectedItems.length; i++) {
+				for (let i = 0; i < this.$selectedItems.length; ++i) {
 					tmp = document.createElement('div');
 					tmp.classList.add('blobselect-selection');
 					tmp.setAttribute('data-value', this.$items[this.$selectedItems[i]].value);
@@ -924,7 +924,7 @@
 				_removeElement(_find(this.selections, '.blobselect-selection'));
 
 				// And insert the new ones into the DOM.
-				for (let i = 0; i < newItems.length; i++) {
+				for (let i = 0; i < newItems.length; ++i) {
 					this.selections.appendChild(newItems[i]);
 				}
 			}
@@ -1123,7 +1123,7 @@
 
 			// Close any other open select fields that might exist.
 			const selects = _find(document, '.blobselect.is-open select');
-			for (let i = 0; i < selects.length; i++) {
+			for (let i = 0; i < selects.length; ++i) {
 				selects[i].blobSelect.close();
 			}
 
@@ -1211,7 +1211,7 @@
 			if (options.length) {
 				// We have to run through everything for multiple.
 				if (this.$me.multiple) {
-					for (let i = 0; i < options.length; i++) {
+					for (let i = 0; i < options.length; ++i) {
 						// Turn off.
 						if (options[i].selected) {
 							options[i].selected = 0;
@@ -1254,7 +1254,7 @@
 			const value = el.dataset.value || '';
 			let options = this.getOptionsByValue(value);
 
-			for (let i = 0; i < options.length; i++) {
+			for (let i = 0; i < options.length; ++i) {
 				options[i].selected = 0;
 			}
 
@@ -1279,7 +1279,7 @@
 			// Nothing to search?
 			if (!me.$search) {
 				items = _find(me.items, '.is-not-match, .is-match');
-				for (let i = 0; i < items.length; i++) {
+				for (let i = 0; i < items.length; ++i) {
 					if (items[i].classList.contains('is-not-match')) {
 						items[i].classList.remove('is-not-match');
 					}
@@ -1297,7 +1297,7 @@
 			let matches = 0;
 
 			items = _find(me.items, '.blobselect-item');
-			for (let i = 0; i < items.length; i++) {
+			for (let i = 0; i < items.length; ++i) {
 				let haystack = items[i].dataset.label;
 				const match = needle.test(haystack);
 				const classMatch = items[i].classList.contains('is-match');
@@ -1305,7 +1305,7 @@
 
 				// Note that we have a match.
 				if (match) {
-					matches++;
+					++matches;
 				}
 
 				// Reset haystack for placeholders.
@@ -1338,7 +1338,7 @@
 			// Show everything if showing nothing.
 			if (!matches) {
 				items = _find(me.items, '.is-not-match, .is-match');
-				for (let i = 0; i < items.length; i++) {
+				for (let i = 0; i < items.length; ++i) {
 					if (items[i].classList.contains('is-not-match')) {
 						items[i].classList.remove('is-not-match');
 					}
@@ -1428,7 +1428,7 @@
 				choice.classList.contains('is-not-match')
 			) {
 				choice = null;
-				for (let i = 0; i < items.length; i++) {
+				for (let i = 0; i < items.length; ++i) {
 					if (
 						!items[i].classList.contains('is-disabled') &&
 						!items[i].classList.contains('is-not-match')
@@ -1455,7 +1455,7 @@
 
 			let out = [];
 
-			for (let i = 0; i < this.$items.length; i++) {
+			for (let i = 0; i < this.$items.length; ++i) {
 				if (
 					('option' === this.$items[i].type) &&
 					(this.$items[i].value === value) &&
@@ -1482,7 +1482,7 @@
 			let out = [];
 			const options = _find(this.$element, 'option');
 
-			for (let i = 0; i < options.length; i++) {
+			for (let i = 0; i < options.length; ++i) {
 				if (
 					(options[i].value === value) &&
 					(disabled || !options[i].disabled)
@@ -1597,7 +1597,7 @@
 	document.addEventListener('DOMContentLoaded', function() {
 		const selects = document.querySelectorAll('select[data-blobselect], select[data-blobselect-watch], select[data-blobselect-search], select[data-blobselect-placeholder], select[data-blobselect-placeholder-option], select[data-blobselect-order], select[data-blobselect-order-type]');
 
-		for (let i = 0; i < selects.length; i++) {
+		for (let i = 0; i < selects.length; ++i) {
 			selects.item(i).blobSelect.init();
 		}
 	});
@@ -1672,7 +1672,7 @@
 		if (src instanceof Array) {
 			// Array.
 			r = [];
-			for (let i = 0, l = src.length; i < l; i++) {
+			for (let i = 0, l = src.length; i < l; ++i) {
 				if (i in src) {
 					r.push(_clone(src[i]));
 				}
@@ -1804,7 +1804,7 @@
 
 		// Run through the user arguments and include anything in the
 		// template.
-		for (let i = 0; i < keysLength; i++) {
+		for (let i = 0; i < keysLength; ++i) {
 			if ('undefined' !== typeof parsed[keys[i]]) {
 				let argValue = _clone(args[keys[i]]);
 
@@ -1914,7 +1914,7 @@
 			selector = selector + '';
 			const results = el.querySelectorAll(selector);
 			if (results.length) {
-				for (let i = 0; i < results.length; i++) {
+				for (let i = 0; i < results.length; ++i) {
 					out.push(results.item(i));
 				}
 			}
@@ -1984,7 +1984,7 @@
 			// Unbind events.
 			try {
 				const fieldEvents = getEventListeners(el[keys[i]]);
-				for (let j = 0; j < fieldEvents.length; j++) {
+				for (let j = 0; j < fieldEvents.length; ++j) {
 					fieldEvents[j].remove();
 				}
 			}
@@ -2187,7 +2187,7 @@
 
 			// Otherwise close anything that is open.
 			selects = _find(document, '.blobselect.is-open select');
-			for (let i = 0; i < selects.length; i++) {
+			for (let i = 0; i < selects.length; ++i) {
 				selects[i].blobSelect.close();
 			}
 		}
@@ -2210,7 +2210,7 @@
 	var _closeOthers = function(me) {
 		const selects = _find(document, '.blobselect.is-open select');
 		if (selects.length) {
-			for (let i = 0; i < selects.length; i++) {
+			for (let i = 0; i < selects.length; ++i) {
 				if (selects[i] !== me) {
 					selects[i].blobSelect.close();
 				}
@@ -2311,7 +2311,7 @@
 		let hash = 0;
 		const strlen = value.length;
 
-		for (let i = 0; i < strlen; i++) {
+		for (let i = 0; i < strlen; ++i) {
 			let c = value.charCodeAt(i);
 			hash = ((hash << 5) - hash) + c;
 			hash = hash & hash; // Convert to 32-bit integer.
