@@ -1667,12 +1667,11 @@
 		}
 
 		let r;
-		let i;
-		let l;
 		if (src instanceof Array) {
 			// Array.
 			r = [];
-			for (let i = 0, l = src.length; i < l; ++i) {
+			const l = src.length;
+			for (let i = 0; i < l; ++i) {
 				if (i in src) {
 					r.push(_clone(src[i]));
 				}
@@ -2177,7 +2176,7 @@
 	 * @param {event} e Event.
 	 * @returns {void} Nothing.
 	 */
-	var _clickOutside = function(e) {
+	const _clickOutside = function(e) {
 		let selects = _find(document, '.blobselect select');
 		if (selects.length) {
 			// If a blob-select field was clicked, we can leave.
@@ -2207,7 +2206,7 @@
 	 * @param {DOMNode} me Current field.
 	 * @returns {void} Nothing.
 	 */
-	var _closeOthers = function(me) {
+	const _closeOthers = function(me) {
 		const selects = _find(document, '.blobselect.is-open select');
 		if (selects.length) {
 			for (let i = 0; i < selects.length; ++i) {
