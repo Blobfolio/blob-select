@@ -77,8 +77,8 @@
 			Element.prototype.oMatchesSelector ||
 			Element.prototype.webkitMatchesSelector ||
 			function(s) {
-				var matches = (this.document || this.ownerDocument).querySelectorAll(s);
-				var i = matches.length;
+				const matches = (this.document || this.ownerDocument).querySelectorAll(s);
+				let i = matches.length;
 				/* eslint-disable-next-line */
 				while (0 <= --i && matches.item(i) !== this) {}
 				return -1 < i;
@@ -94,7 +94,7 @@
 	// -----------------------------------------------------------------
 
 	// Runtime settings.
-	var settings = {
+	const settings = {
 		orderType: '',				// Sort <OPTION>: string, numeric
 		order: 'ASC',				// Sort order.
 		placeholder: '---',			// Selected Placeholder.
@@ -104,7 +104,7 @@
 	};
 
 	// Flag names.
-	var flags = {
+	const flags = {
 		blobselectOrderType: 'blobselect-order-type',
 		blobselectOrder: 'blobselect-order',
 		blobselectPlaceholder: 'blobselect-placeholder',
@@ -283,11 +283,11 @@
 			}
 
 			// Options can be specified individually too.
-			var flagsKeys = Object.keys(flags);
+			const flagsKeys = Object.keys(flags);
 			for (let i = 0; i < flagsKeys.length; i++) {
 				if (this.$element.dataset[flagsKeys[i]]) {
 					// Apply the setting.
-					var settingsKey = flagsKeys[i].substr(10, 1).toLowerCase() + flagsKeys[i].substr(11);
+					let settingsKey = flagsKeys[i].substr(10, 1).toLowerCase() + flagsKeys[i].substr(11);
 					args[settingsKey] = this.$element.dataset[flagsKeys[i]];
 
 					// Remove the attribute(s);
@@ -312,7 +312,7 @@
 			}
 
 			// The initial work.
-			var parsed = _parseArgs(args, settings, true);
+			let parsed = _parseArgs(args, settings, true);
 
 			// Examine individual settings closer.
 			if (parsed.orderType) {
@@ -345,7 +345,7 @@
 
 			// Start a new watch task.
 			if (this.$settings.watch) {
-				var me = this;
+				const me = this;
 				this.$watch = setInterval(function() {
 					me.buildData();
 				}, this.$settings.watch);
@@ -353,7 +353,7 @@
 
 			// Update the dataset attribute to reflect the sanitized
 			// configuration.
-			var settingsString = JSON.stringify(this.$settings);
+			let settingsString = JSON.stringify(this.$settings);
 			this.$element.setAttribute('data-blobselect', settingsString);
 
 			return true;
@@ -372,13 +372,13 @@
 			}
 
 			// The parent element is easy.
-			var tmp = {
+			let tmp = {
 				disabled: this.$element.disabled,
 				required: this.$element.required,
 				multiple: this.$element.multiple,
 				items: [],
 			};
-			var selected = [];
+			let selected = [];
 
 			// Update the data if there are changes.
 			if (tmp.disabled !== this.$me.disabled) {
@@ -397,10 +397,11 @@
 			// Now gather data about all the items (options and
 			// optgroups). Start with the latter as they'll be sorted
 			// within themselves.
-			var lastOptgroup = false;
-			var ungrouped = [];
-			var placeholderOption = this.$settings.placeholderOption.toLowerCase();
-			var rows = [];
+			let lastOptgroup = false;
+			let ungrouped = [];
+			const placeholderOption = this.$settings.placeholderOption.toLowerCase();
+			let rows = [];
+			let row;
 
 			// Loop through options!
 			for (let i = 0; i < this.$element.options.length; i++) {
@@ -448,7 +449,7 @@
 				}
 
 				// Deal with the option.
-				let row = {
+				row = {
 					label: v.label || v.textContent || '',
 					value: v.value,
 					type: 'option',
@@ -501,7 +502,7 @@
 			}
 
 			// Do we need to rebuild the elements?
-			var hash = _checksum(tmp);
+			const hash = _checksum(tmp);
 			if (hash !== this.$itemsHash) {
 				this.$items = tmp.items;
 
@@ -516,7 +517,7 @@
 				this.$selectedItems = selected;
 
 				// Update the selection hash.
-				var hash2 = _checksum(selected);
+				const hash2 = _checksum(selected);
 
 				this.buildItems();
 
@@ -577,12 +578,12 @@
 			this.buildSearch();
 
 			// Bind some actions!
-			var me = this;
+			const me = this;
 
 			// First action, a generic click-outside to close open
 			// menus. We only need to bind this once.
 			if (!clickOutside) {
-				document.querySelector('html').addEventListener('click', _clickOutside);
+				document.documentElement.addEventListener('click', _clickOutside);
 			}
 
 			// Watch for element changes.
@@ -648,15 +649,15 @@
 			force = !!force;
 			this.$search = '';
 
-			var tmp;
-			var me = this;
+			let tmp;
+			const me = this;
+			let value;
 
 			// Force a rebuild if the items don't match data.
 			if (!force) {
 				// Any new or removed items?
-				var oldValues = [];
-				var newValues = [];
-				let value;
+				let oldValues = [];
+				let newValues = [];
 
 				// Find the values we're internally storing.
 				for (let i = 0; i < this.$items.length; i++) {
@@ -697,8 +698,8 @@
 
 			// Forcefully rebuild all the items.
 			if (force) {
-				var newItems = [];
-				var tabIndex = 1;
+				let newItems = [];
+				let tabIndex = 1;
 				for (let i = 0; i < this.$items.length; i++) {
 					tmp = document.createElement('div');
 
@@ -766,7 +767,7 @@
 			// Update items in place. This saves overhead from
 			// unnecessary DOM mutations and event binding.
 			else {
-				var key = -1;
+				let key = -1;
 				for (let i = 0; i < this.items.children.length; i++) {
 					// We only want optgroups and options.
 					if (
@@ -816,7 +817,7 @@
 
 							// Remove events.
 							try {
-								var fieldEvents = getEventListeners(this.items.children[i]);
+								const fieldEvents = getEventListeners(this.items.children[i]);
 								for (let j = 0; j < fieldEvents.length; j++) {
 									fieldEvents[j].remove();
 								}
@@ -844,7 +845,7 @@
 					}
 
 					// TextContent().
-					var textContent = this.$items[key].label;
+					let textContent = this.$items[key].label;
 					if (this.$items[key].placeholder) {
 						textContent = this.$settings.placeholderOption;
 					}
@@ -867,14 +868,13 @@
 			}
 
 			force = !!force;
-
-			var tmp;
+			let tmp;
 
 			// Force a rebuild if the selections don't match the data.
 			if (!force) {
 				// Any new or removed items?
-				var oldValues = [];
-				var newValues = [];
+				let oldValues = [];
+				let newValues = [];
 
 				// What should be selected?
 				for (let i = 0; i < this.$selectedItems.length; i++) {
@@ -899,7 +899,7 @@
 
 			// Forcefully rebuild the selections.
 			if (force) {
-				var newItems = [];
+				let newItems = [];
 
 				// Start by creating the new ones.
 				for (let i = 0; i < this.$selectedItems.length; i++) {
@@ -1008,8 +1008,8 @@
 		 * @returns {void} Nothing.
 		 */
 		containerKey: function(e) {
-			var key = e.keyCode;
-			var map = {
+			const key = e.keyCode;
+			const map = {
 				8: 'backspace',
 				9: 'tab',
 				13: 'enter',
@@ -1020,8 +1020,8 @@
 				39: 'right',
 				40: 'down',
 			};
-			var keyMapped = map[key] || 'other';
-			var keyPrintable = _isPrintableKey(key);
+			const keyMapped = map[key] || 'other';
+			const keyPrintable = _isPrintableKey(key);
 
 			// A closed menu.
 			if ('closed' === this.$me.state) {
@@ -1064,7 +1064,7 @@
 				}
 
 				// Select the selection.
-				var choice = this.getActiveItem();
+				const choice = this.getActiveItem();
 				if (choice) {
 					return this.select(choice);
 				}
@@ -1087,7 +1087,7 @@
 				}
 
 				// Whereto?
-				var direction = -1 !== ['tab', 'down', 'right'].indexOf(keyMapped) ? 'next' : 'back';
+				const direction = -1 !== ['tab', 'down', 'right'].indexOf(keyMapped) ? 'next' : 'back';
 				return this.traverseItems(direction);
 			}
 
@@ -1096,7 +1096,7 @@
 				e.stopPropagation();
 
 				// Refilter items?
-				var searchText = _sanitizeWhitespace(this.search.textContent).toLowerCase();
+				const searchText = _sanitizeWhitespace(this.search.textContent).toLowerCase();
 				if (searchText !== this.$search) {
 					this.$search = searchText;
 					return this.filterItems();
@@ -1122,12 +1122,12 @@
 			}
 
 			// Close any other open select fields that might exist.
-			var selects = _find(document, '.blobselect.is-open select');
+			const selects = _find(document, '.blobselect.is-open select');
 			for (let i = 0; i < selects.length; i++) {
 				selects[i].blobSelect.close();
 			}
 
-			var me = this;
+			const me = this;
 
 			// Remove focus on the items.
 			this.items.setAttribute('data-focused', -1);
@@ -1180,7 +1180,7 @@
 			if (this.isInitialized()) {
 				this.$lock = true;
 
-				var event = document.createEvent('UIEvents');
+				let event = document.createEvent('UIEvents');
 				event.initUIEvent('change', true, true, window, 1);
 				this.$element.dispatchEvent(event);
 
@@ -1205,8 +1205,8 @@
 				return this.close();
 			}
 
-			var value = el.dataset.value;
-			var options = this.getOptionsByValue(value);
+			const value = el.dataset.value;
+			let options = this.getOptionsByValue(value);
 
 			if (options.length) {
 				// We have to run through everything for multiple.
@@ -1251,8 +1251,8 @@
 				return this.close();
 			}
 
-			var value = el.dataset.value || '';
-			var options = this.getOptionsByValue(value);
+			const value = el.dataset.value || '';
+			let options = this.getOptionsByValue(value);
 
 			for (let i = 0; i < options.length; i++) {
 				options[i].selected = 0;
@@ -1273,8 +1273,8 @@
 				return false;
 			}
 
-			var me = this;
-			var items;
+			const me = this;
+			let items;
 
 			// Nothing to search?
 			if (!me.$search) {
@@ -1292,16 +1292,16 @@
 				return;
 			}
 
-			var needle = RegExp(_sanitizeRegExp(me.$search), 'i');
-			var replaceNeedle = RegExp(_sanitizeRegExp(me.$search), 'gi');
-			var matches = 0;
+			const needle = RegExp(_sanitizeRegExp(me.$search), 'i');
+			const replaceNeedle = RegExp(_sanitizeRegExp(me.$search), 'gi');
+			let matches = 0;
 
 			items = _find(me.items, '.blobselect-item');
 			for (let i = 0; i < items.length; i++) {
-				var haystack = items[i].dataset.label;
-				var match = needle.test(haystack);
-				var classMatch = items[i].classList.contains('is-match');
-				var classNoMatch = items[i].classList.contains('is-not-match');
+				let haystack = items[i].dataset.label;
+				const match = needle.test(haystack);
+				const classMatch = items[i].classList.contains('is-match');
+				const classNoMatch = items[i].classList.contains('is-not-match');
 
 				// Note that we have a match.
 				if (match) {
@@ -1366,10 +1366,10 @@
 		 * @returns {void} Nothing.
 		 */
 		traverseItems: function(direction) {
-			var active = this.getActiveItem();
-			var items = _find(this.items, '.blobselect-item:not(.is-disabled):not(.is-not-match)');
-			var activeIndex = items.indexOf(active) || -1;
-			var choice = null;
+			const active = this.getActiveItem();
+			const items = _find(this.items, '.blobselect-item:not(.is-disabled):not(.is-not-match)');
+			let activeIndex = items.indexOf(active) || -1;
+			let choice = null;
 
 			// The active is impossible.
 			if (-1 === activeIndex) {
@@ -1406,9 +1406,9 @@
 		 * @returns {DOMElement|bool} Active or false.
 		 */
 		getActiveItem: function() {
-			var choice;
-			var items = _find(this.items, '.blobselect-item');
-			var focused = parseInt(this.items.dataset.focused, 10) || -1;
+			const items = _find(this.items, '.blobselect-item');
+			let choice;
+			let focused = parseInt(this.items.dataset.focused, 10) || -1;
 
 			// Make sure the selection makes sense.
 			if (focused > items.length - 1) {
@@ -1453,7 +1453,7 @@
 			disabled = !!disabled;
 			value = value + '';
 
-			var out = [];
+			let out = [];
 
 			for (let i = 0; i < this.$items.length; i++) {
 				if (
@@ -1479,8 +1479,8 @@
 			disabled = !!disabled;
 			value = value + '';
 
-			var out = [];
-			var options = _find(this.$element, 'option');
+			let out = [];
+			const options = _find(this.$element, 'option');
 
 			for (let i = 0; i < options.length; i++) {
 				if (
@@ -1595,11 +1595,10 @@
 	 * @returns {void} Nothing.
 	 */
 	document.addEventListener('DOMContentLoaded', function() {
-		var selects = document.querySelectorAll('select[data-blobselect], select[data-blobselect-watch], select[data-blobselect-search], select[data-blobselect-placeholder], select[data-blobselect-placeholder-option], select[data-blobselect-order], select[data-blobselect-order-type]');
+		const selects = document.querySelectorAll('select[data-blobselect], select[data-blobselect-watch], select[data-blobselect-search], select[data-blobselect-placeholder], select[data-blobselect-placeholder-option], select[data-blobselect-order], select[data-blobselect-order-type]');
 
 		for (let i = 0; i < selects.length; i++) {
-			var el = selects.item(i);
-			el.blobSelect.init();
+			selects.item(i).blobSelect.init();
 		}
 	});
 
@@ -1625,19 +1624,17 @@
 	 */
 	function _clone(src) {
 		/**
-		 * Internal Clone Helper
+		 * Mixin
 		 *
-		 * @param {mixed} dest Destination.
-		 * @param {mixed} source Source.
-		 * @param {function} copyFunc Copy function.
-		 * @returns {mixed} Clone.
+		 * @param {mixed} dest Output var.
+		 * @param {mixed} source Source var.
+		 * @param {callback} copyFunc Copy function.
+		 * @returns {mixed} Output var.
 		 */
 		function mixin(dest, source, copyFunc) {
-			var name;
-			var s;
-			var empty = {};
-			for (name in source) {
-				s = source[name];
+			let empty = {};
+			for (let name in source) {
+				let s = source[name];
 				if (!(name in dest) || (dest[name] !== s && (!(name in empty) || empty[name] !== s))) {
 					dest[name] = copyFunc ? copyFunc(s) : s;
 				}
@@ -1645,7 +1642,11 @@
 			return dest;
 		}
 
-		if (!src || 'object' !== typeof src || '[object Function]' === Object.prototype.toString.call(src)) {
+		if (
+			!src ||
+			('object' !== typeof src) ||
+			('[object Function]' === Object.prototype.toString.call(src))
+		) {
 			// Covers null, undefined, any non-object, or function.
 			return src;
 		}
@@ -1665,22 +1666,22 @@
 			return new RegExp(src);   // RegExp
 		}
 
-		var r;
-		// This is an array.
+		let r;
+		let i;
+		let l;
 		if (src instanceof Array) {
+			// Array.
 			r = [];
-			let l = src.length;
-			for (let i = 0; i < l; ++i) {
+			for (let i = 0, l = src.length; i < l; i++) {
 				if (i in src) {
 					r.push(_clone(src[i]));
 				}
 			}
 		}
-		// This is some other object type.
 		else {
+			// Some other object type.
 			r = src.constructor ? new src.constructor() : {};
 		}
-
 		return mixin(r, src, _clone);
 	}
 
@@ -1695,7 +1696,7 @@
 	 * @returns {Cast} value.
 	 */
 	function _cast(value, type) {
-		var valueType = typeof value;
+		const valueType = typeof value;
 		if (valueType === type) {
 			return value;
 		}
@@ -1731,7 +1732,7 @@
 			try {
 				// Let's try to catch boolish strings.
 				if ('string' === valueType) {
-					var valueLower = value.toLowerCase();
+					const valueLower = value.toLowerCase();
 					if (-1 !== ['off', '0', 'false'].indexOf(valueLower)) {
 						value = false;
 					}
@@ -1760,12 +1761,9 @@
 	 * @returns {bool} True/false.
 	 */
 	function _isObject(value) {
-		var valueType = typeof value;
-
 		return (
-			('undefined' !== valueType) &&
-			(null !== value) &&
-			('object' === valueType)
+			('object' === typeof value) &&
+			(null !== value)
 		);
 	}
 
@@ -1795,9 +1793,9 @@
 			strict = !!strict;
 		}
 
-		var parsed = _clone(defaults);
-		var keys = Object.keys(args);
-		var keysLength = keys.length;
+		let parsed = _clone(defaults);
+		const keys = Object.keys(args);
+		const keysLength = keys.length;
 
 		// Do we need to be here?
 		if (!keysLength) {
@@ -1808,12 +1806,12 @@
 		// template.
 		for (let i = 0; i < keysLength; i++) {
 			if ('undefined' !== typeof parsed[keys[i]]) {
-				var argValue = _clone(args[keys[i]]);
+				let argValue = _clone(args[keys[i]]);
 
 				// Typecast result.
 				if (strict && (null !== parsed[keys[i]])) {
-					var argType = typeof argValue;
-					var defaultType = typeof parsed[keys[i]];
+					const argType = typeof argValue;
+					const defaultType = typeof parsed[keys[i]];
 
 					if (argType !== defaultType) {
 						argValue = _cast(argValue, defaultType);
@@ -1845,7 +1843,7 @@
 		}
 
 		try {
-			var j = _JSON5.parse(str);
+			const j = _JSON5.parse(str);
 			if (null !== j) {
 				return j;
 			}
@@ -1910,11 +1908,11 @@
 	 * @returns {Array} Elements.
 	 */
 	function _find(el, selector) {
-		var out = [];
+		let out = [];
 
 		try {
 			selector = selector + '';
-			var results = el.querySelectorAll(selector);
+			const results = el.querySelectorAll(selector);
 			if (results.length) {
 				for (let i = 0; i < results.length; i++) {
 					out.push(results.item(i));
@@ -1969,7 +1967,7 @@
 		}
 
 		// Make sure whatever kind of objecty thing we have is iterable.
-		var keys;
+		let keys;
 		try {
 			keys = Object.keys(el);
 		} catch (Ex) {
@@ -1985,13 +1983,13 @@
 
 			// Unbind events.
 			try {
-				var fieldEvents = getEventListeners(el[keys[i]]);
-				for (var j = 0; j < fieldEvents.length; j++) {
+				const fieldEvents = getEventListeners(el[keys[i]]);
+				for (let j = 0; j < fieldEvents.length; j++) {
 					fieldEvents[j].remove();
 				}
-			} catch (Ex) {
-				continue;
 			}
+			/* eslint-disable-next-line */
+			catch (Ex) {}
 
 			// Remove the field.
 			el[keys[i]].parentNode.removeChild(el[keys[i]]);
@@ -2062,8 +2060,8 @@
 			return 1;
 		}
 
-		var atext = Number(a.label.replace(/[^\d.]/g, '')) || 0;
-		var btext = Number(b.label.replace(/[^\d.]/g, '')) || 0;
+		const atext = Number(a.label.replace(/[^\d.]/g, '')) || 0;
+		const btext = Number(b.label.replace(/[^\d.]/g, '')) || 0;
 
 		// Otherwise just sort by label.
 		return atext < btext ? -1 : 1;
@@ -2085,8 +2083,8 @@
 			return 1;
 		}
 
-		var atext = Number(a.label.replace(/[^\d.]/g, '')) || 0;
-		var btext = Number(b.label.replace(/[^\d.]/g, '')) || 0;
+		const atext = Number(a.label.replace(/[^\d.]/g, '')) || 0;
+		const btext = Number(b.label.replace(/[^\d.]/g, '')) || 0;
 
 		// Otherwise just sort by label.
 		return atext > btext ? -1 : 1;
@@ -2103,8 +2101,8 @@
 	 * @returns {int} Position.
 	 */
 	function _sortTextContent(a, b) {
-		var atext = a.textContent.toLowerCase();
-		var btext = b.textContent.toLowerCase();
+		const atext = a.textContent.toLowerCase();
+		const btext = b.textContent.toLowerCase();
 
 		if (atext === btext) {
 			return 0;
@@ -2130,8 +2128,8 @@
 	 * @returns {void} Nothing.
 	 */
 	function _cursorToEnd(el) {
-		var searchRange = document.createRange();
-		var searchSelection;
+		let searchRange = document.createRange();
+		let searchSelection;
 
 		searchRange.selectNodeContents(el);
 		searchRange.collapse(false);
@@ -2180,7 +2178,7 @@
 	 * @returns {void} Nothing.
 	 */
 	var _clickOutside = function(e) {
-		var selects = _find(document, '.blobselect select');
+		let selects = _find(document, '.blobselect select');
 		if (selects.length) {
 			// If a blob-select field was clicked, we can leave.
 			if (false !== _closest(e.target, '.blobselect')) {
@@ -2196,7 +2194,7 @@
 		// If there aren't any blob-select fields, we can unbind this.
 		else {
 			clickOutside = false;
-			document.querySelector('html').removeEventListener('click', _clickOutside);
+			document.documentElement.removeEventListener('click', _clickOutside);
 		}
 	};
 
@@ -2210,7 +2208,7 @@
 	 * @returns {void} Nothing.
 	 */
 	var _closeOthers = function(me) {
-		var selects = _find(document, '.blobselect.is-open select');
+		const selects = _find(document, '.blobselect.is-open select');
 		if (selects.length) {
 			for (let i = 0; i < selects.length; i++) {
 				if (selects[i] !== me) {
@@ -2310,11 +2308,11 @@
 		}
 
 		// Declare our variables.
-		var hash = 0;
-		var strlen = value.length;
+		let hash = 0;
+		const strlen = value.length;
 
 		for (let i = 0; i < strlen; i++) {
-			var c = value.charCodeAt(i);
+			let c = value.charCodeAt(i);
 			hash = ((hash << 5) - hash) + c;
 			hash = hash & hash; // Convert to 32-bit integer.
 		}
