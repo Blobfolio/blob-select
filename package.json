@@ -3,13 +3,12 @@
   "devDependencies": {
     "cssnano": "*",
     "grunt": "*",
-    "grunt-contrib-jshint": "*",
-    "grunt-contrib-sass": "*",
-    "grunt-contrib-uglify": "*",
     "grunt-contrib-watch": "*",
+    "grunt-eslint": "*",
     "grunt-notify": "*",
     "grunt-postcss": "*",
     "grunt-sass": "*",
-    "postcss-fixes": "*"
+    "postcss-fixes": "*",
+    "grunt-contrib-uglify-es": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony"
   }
 }

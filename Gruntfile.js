@@ -1,16 +1,17 @@
 /*global module:false*/
 module.exports = function(grunt) {
 
-	//Project configuration.
+	// Project configuration.
 	grunt.initConfig({
-		//Metadata.
+		// Metadata.
 		pkg: grunt.file.readJSON('package.json'),
 
-		//SCSS
+		// CSS.
 		sass: {
 			dist: {
 				options: {
-					style: 'compressed'
+					outputStyle: 'compressed',
+					sourceMap: false,
 				},
 				files: {
 					'dist/css/blobselect.css': 'src/scss/blobselect.scss',
@@ -19,11 +20,9 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-
-		//CSS PROCESSING
 		postcss: {
 			options: {
-				map: true,
+				map: false,
 				processors: [
 					require('postcss-fixes')(),
 					require('autoprefixer')( { browsers: 'last 3 versions' } ), // vendor prefixes
@@ -40,11 +39,18 @@ module.exports = function(grunt) {
 			}
 		},
 
-		//JAVASCRIPT
-		jshint: {
-			all: ['src/js/blobselect.js']
+		// Javascript.
+		eslint: {
+			check: {
+				src: ['src/js/custom/**/*.js'],
+			},
+			fix: {
+				options: {
+					fix: true,
+				},
+				src: ['src/js/custom/**/*.js'],
+			}
 		},
-
 		uglify: {
 			options: {
 				mangle: false
@@ -56,7 +62,7 @@ module.exports = function(grunt) {
 			}
 		},
 
-		//WATCH
+		// Watchers.
 		watch: {
 			styles: {
 				files: ['src/scss/*.scss', 'dist/css/*.css'],
@@ -75,7 +81,7 @@ module.exports = function(grunt) {
 			}
 		},
 
-		//NOTIFY
+		// Notifications.
 		notify: {
 			css: {
 				options:{
@@ -93,15 +99,15 @@ module.exports = function(grunt) {
 		}
 	});
 
-	//These plugins provide necessary tasks.
-	grunt.loadNpmTasks('grunt-contrib-uglify');
+	// These plugins provide necessary tasks.
+	grunt.loadNpmTasks('grunt-contrib-uglify-es');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.loadNpmTasks('grunt-contrib-sass');
-	grunt.loadNpmTasks('grunt-postcss');
-	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-eslint');
 	grunt.loadNpmTasks('grunt-notify');
+	grunt.loadNpmTasks('grunt-postcss');
+	grunt.loadNpmTasks('grunt-sass');
 
-	//tasks
+	// Tasks.
 	grunt.registerTask('default', ['css', 'javascript']);
 	grunt.registerTask('css', ['sass', 'postcss']);
 	grunt.registerTask('javascript', ['jshint', 'uglify']);
