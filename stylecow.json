@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "input": "dist/css/*.css",
+      "output": "dist/css/[name][ext]"
+    }
+  ],
+  "support": {
+    "explorer": 11,
+    "edge": 16,
+    "firefox": 59,
+    "chrome": 65,
+    "safari": 11.1,
+    "opera": false,
+    "android": false,
+    "ios": 11
+  },
+  "plugins": [
+    "calc",
+    "color",
+    "fixes",
+    "flex",
+    "font-variant",
+    "matches",
+    "media-queries",
+    "npm-loader",
+    "prefixes",
+    "variables"
+  ],
+  "code": "minify",
+  "map": "none"
+}
