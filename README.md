@@ -65,7 +65,7 @@ Download `dist/blobselect.min.js` and add it to your project folder, and include
 <script src="/path/to/blobselect.min.js"></script>
 ```
 
-The `dist/` folder also includes an example stylesheet and icon for the search bar to help get you started. Of course, you can also write styles from scratch; the generated markup is pretty straight-forward. :)
+Aside from the main script, you'll also need some CSS styles. You can either plug in the default stylesheet from `dist/css/` or take a look at the source in `src/scss/` to roll your own.
 
 
 
