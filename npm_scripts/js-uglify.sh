@@ -17,7 +17,11 @@ command -v uglifyjs >/dev/null 2>&1 || {
 
 
 echo -e "\033[2mcompiling:\033[0m blobselect.js"
-uglifyjs -c --ecma 6 -o "dist/js/blobselect.min.js" -- "src/js/blobselect.js"
+uglifyjs -c -m -o "dist/blobselect.min.js" -- "src/js/blobselect.js"
+if [ $? != 0 ]; then
+	notify-send -i error --category dev.validate -h int:transient:1 -t 3000 "Uglify-es: Error" "Your Javascript did not validate."
+	exit 1
+fi
 
 
 
