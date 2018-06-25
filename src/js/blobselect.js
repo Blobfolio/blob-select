@@ -7,7 +7,7 @@
  * @license WTFPL <http://www.wtfpl.net>
  *
  * @see https://blobfolio.com
- * @see https://github.com/Blobfolio/vue-blob-forms
+ * @see https://github.com/Blobfolio/blob-select
  *
  * USE:
  *	<select data-blobselect='{...}'>
