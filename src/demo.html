@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+	<!-- A simple defalut stylesheet for <blob-select> fields. -->
+	<link rel='stylesheet' id='css-core-css'  href='../dist/css/blobselect.css' type='text/css' media='all' />
+
+	<style type="text/css">
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			border: 0;
+			outline: 0;
+		}
+
+		html { min-height: 100%; }
+		body {
+			padding: 25px;
+
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Oxygen-Sans', Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+			font-weight: 400;
+			font-size: 1rem;
+			font-variant: normal;
+			font-style: normal;
+			line-height: 1;
+
+			background: #fff;
+			color: #555;
+		}
+
+		fieldset > * + * {
+			margin-top: 10px;
+		}
+
+		fieldset + fieldset {
+			margin-top: 45px;
+		}
+
+		label {
+			font-size: .8rem;
+			font-weight: 600;
+			text-transform: lowercase;
+			cursor: pointer;
+			color: #ff1493;
+		}
+		label:after { content: ':'; }
+	</style>
+</head>
+<body>
+
+<fieldset>
+	<label for="select-1">Simple Select</label>
+	<select
+		id="select-1"
+		data-blobselect-placeholder="Eat Something"
+		data-blobselect-placeholder-option="None of the Above"
+		data-blobselect-order-type="string"
+		data-blobselect-order="asc"
+		>
+		<option value="0"></option>
+		<option value="apples">Apples</option>
+		<option value="bananas">Bananas</option>
+		<option value="pears">Pears</option>
+		<option value="cabbage">Cabbage</option>
+		<option value="carrots">Carrots</option>
+		<option value="lettuce">Lettuce</option>
+	</select>
+</fieldset>
+
+<fieldset>
+	<label for="select-2">With Search</label>
+	<select
+		id="select-2"
+		data-blobselect-search="true"
+		data-blobselect-placeholder="Eat Something"
+		data-blobselect-placeholder-option="None of the Above"
+		data-blobselect-order-type="string"
+		data-blobselect-order="asc"
+		>
+		<option value="0"></option>
+		<option value="apples">Apples</option>
+		<option value="bananas">Bananas</option>
+		<option value="pears">Pears</option>
+		<option value="cabbage">Cabbage</option>
+		<option value="carrots">Carrots</option>
+		<option value="lettuce">Lettuce</option>
+	</select>
+</fieldset>
+
+<fieldset>
+	<label for="select-3">With &lt;OPTGROUP&gt;s</label>
+	<select
+		id="select-3"
+		data-blobselect-placeholder="Eat Something"
+		data-blobselect-placeholder-option="None of the Above"
+		data-blobselect-order-type="string"
+		data-blobselect-order="asc"
+		>
+		<optgroup label="Fruit">
+			<option value="apples">Apples</option>
+			<option value="bananas">Bananas</option>
+			<option value="pears">Pears</option>
+		</optgroup>
+		<optgroup label="Vegetables">
+			<option value="cabbage">Cabbage</option>
+			<option value="carrots">Carrots</option>
+			<option value="lettuce">Lettuce</option>
+		</optgroup>
+		<option value=""></option>
+		<option value="ungrouped-eggplant">Eggplant</option>
+		<option value="ungrouped-dates">Dates</option>
+	</select>
+</fieldset>
+
+<fieldset>
+	<label for="select-4">Multi-Select</label>
+	<select
+		id="select-4"
+		data-blobselect-search="true"
+		data-blobselect-order-type="string"
+		data-blobselect-order="asc"
+		multiple
+		>
+		<option value="apples">Apples</option>
+		<option value="bananas">Bananas</option>
+		<option value="pears">Pears</option>
+		<option value="cabbage">Cabbage</option>
+		<option value="carrots">Carrots</option>
+		<option value="lettuce">Lettuce</option>
+	</select>
+</fieldset>
+
+<fieldset>
+	<label for="select-5">JSON Initialization</label>
+	<select
+		id="select-5"
+		data-blobselect="{placeholder: 'Eat Something', placeholderOption: 'None of the Above', orderType: 'string', order: 'desc'}">
+		<option value="0"></option>
+		<option value="apples">Apples</option>
+		<option value="bananas">Bananas</option>
+		<option value="pears">Pears</option>
+		<option value="cabbage">Cabbage</option>
+		<option value="carrots">Carrots</option>
+		<option value="lettuce">Lettuce</option>
+	</select>
+</fieldset>
+
+
+
+<!-- Our script. -->
+<script src="../dist/blobselect.min.js"></script>
+
+</body>
+</html>
