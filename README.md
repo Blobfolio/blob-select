@@ -2,6 +2,8 @@
 
 A dependency-free Javascript plugin for styling `<select>` elements with an emphasis on markup simplicity and performance.
 
+Note: For projects built with the [Vue.js](https://vuejs.org/) framework, the [vue-blob-select](https://github.com/Blobfolio/vue-blob-select) fork might be a better fit.
+
 
 
 ##### Table of Contents
@@ -18,27 +20,37 @@ A dependency-free Javascript plugin for styling `<select>` elements with an emph
 5. [License](#license)
 
 
+
 &nbsp;
 
 ## Features
 
 blob-select has feature parity with the standard `<select>`, `<option>`, and `<optgroup>` attributes, including:
+
 * `<select multiple=multiple>`
 * `<select disabled=disabled>`
 * `<optgroup disabled=disabled>`
 * `<option disabled=disabled>`
 
 blob-select additionally provides support for:
+
 * Placeholders
 * Searching
 * Sorting
+
 
 
 &nbsp;
 
 ## Requirements
 
-blob-select does not require any specialJavascript frameworks. It is compatible with all major modern browsers and IE 11.
+blob-select is written in pure Javascript and does not depend on any third-party frameworks.
+
+It is compatible with all major modern web browsers, and ~~the browser that just won't die~~ IE 11.
+
+This plugin does make use of some ES6 markup like `let` and `const`. If your project needs to support *old* browsers, you will need to first transpile `blobselect.min.js` to ES5 with a tool like [Babel](https://babeljs.io/), then serve that copy to visitors.
+
+
 
 &nbsp;
 
@@ -47,21 +59,14 @@ blob-select does not require any specialJavascript frameworks. It is compatible 
 
 ### Installation
 
-Download `dist/js/blobselect.min.js` and add it to your project folder, and include it somewhere on the page.
+Download `dist/blobselect.min.js` and add it to your project folder, and include it somewhere on the page.
 
 ```html
 <script src="/path/to/blobselect.min.js"></script>
 ```
 
-Or via Composer:
-```bash
-composer require "blobfolio/blob-select:dev-master"
-```
+The `dist/` folder also includes an example stylesheet and icon for the search bar to help get you started. Of course, you can also write styles from scratch; the generated markup is pretty straight-forward. :)
 
-Or via Bower:
-```bash
-bower install blob-select
-```
 
 
 ### Configuration
@@ -70,27 +75,32 @@ blob-select includes a few choice functional enhancements to the standard `selec
 
 ```html
 <!--
-A single HTML attribute with chosen settings as a stringified object,
-e.g. JSON.
-Note: if present, individual HTML attributes (see below) take priority.
+  Pass all options in JSON format via a data-blobselect
+  attribute. More specific attributes (see below), if
+  present, take priority.
 -->
-<select data-blobselect='{"foo" : "bar", ...}'></select>
+<select data-blobselect='{"foo" : "bar", …}'></select>
 
 <!--
-Individual HTML attributes.
-Format like: data-blobselect-{de-camelCased property name}
-    e.g. set orderType via data-blobselect-order-type="..."
+  Pass individual options via kabob-case data attributes.
+  For example, set "orderType" via
+  data-blobselect-order-type="…".
 -->
 <select data-blobselect-foo="bar"></select>
 
-<!-- via Javascript -->
+<!--
+  Alternatively, you can set elements in Javascript when
+  calling the constructor.
+-->
 <script>
     document.getElementById('my-select').blobSelect({
         foo : "bar",
-        ...
+        …
     });
 </script>
 ```
+
+
 
 The following settings are available:
 
@@ -111,11 +121,12 @@ blob-select will automatically initialize any `<select>` elements on `DOMContent
 
 ```javascript
 // Regular ol' JS.
-document.getElementById('my-select').blobSelect.init({...});
+document.getElementById('my-select').blobSelect.init({…});
 
 // jQuery example.
-$('#my-select')[0].blobSelect.init({...});
+$('#my-select')[0].blobSelect.init({…});
 ```
+
 
 
 ### Destruction
@@ -125,6 +136,7 @@ To restore your page to its natural state, simply run:
 ```javascript
 document.getElementById('my-select').blobSelect.destroy();
 ```
+
 
 
 ### Repaint
@@ -137,7 +149,7 @@ Set the `watch` runtime property on the field. This will add a `setInterval()` t
 
 ```html
 <!-- Will look for changes every half-second. -->
-<select data-blobselect-watch="500">...</select>
+<select data-blobselect-watch="500">…</select>
 ```
 
 **element.blobSelect.buildData()**:
@@ -150,6 +162,7 @@ document.getElementById('my-select').blobSelect.buildData();
 ```
 
 
+
 &nbsp;
 
 ## Styling
@@ -160,71 +173,112 @@ The HTML structure is as follows:
 
 ```html
 <!--
-.blobselect: the main container (don't add this class to your SELECT)
-.is-multiple: if the select allows multiple values
-.is-open: if the dropdown is open
-.is-opening: a transitional class to allow you to e.g. animate from display: none
-.is-disabled: if the select has the disabled attribute
+  .blobselect: The main container.
+
+    &.is-multiple: If the <select> is [multiple].
+
+    &.is-open: The dropdown is open.
+
+    &.is-opening: The dropdown is opening. This is a quick
+    transitional class that exists solely to allow you to
+    do things like animate from display:none.
+
+    &.is-disabled: The <select> is disabled.
+
+  Note: Do not add any of these classes manually.
 -->
 <div class="blobselect">
 
-    <!-- .blobselect-selections: selection(s) wrapper -->
+    <!--
+      .blobselect-selections: Selection(s) container.
+    -->
     <div class="blobselect-selections">
     
         <!--
-        .blobselect-selection: a selection
-        .is-placeholder: if the selection is a placeholder option
-        Note: multiselects can have more than one .blobselect-selection
+          .blobselect-selection: A single section.
+
+            &.is-placeholder: The "selected" item is a
+            placeholder.
+
+          Note: [multiple] selects can have more than one
+          .blobselect-selection.
         -->
         <div class="blobselect-selection" data-value="apples" data-label="Apples">Apples</div>
     </div>
     
-    <!-- the original select -->
-    <select name="foobar" id="foobar" class="foobar"> ... </select>
+    <!-- The original <select> is now here. -->
+    <select name="foobar" id="foobar" class="foobar">…</select>
 
     <!--
-    .blobselect-button: an extra element in case you need more than
-    a :after to achieve the desired styling. Note: click events are bound
-    on the entire .blobselect container, so you don't have to use this
+      .blobselect-button: This is a superfluous element to
+      help you draw something like a button. The example
+      CSS uses :after to make a triangle.
+
+      Note: Click events are bound to the entire
+      .blobselect container, so if you don't need this, you
+      can display:none it to get it out of your hair.
     -->
     <div class="blobselect-button"></div>
 
-    <!--.blobselect-items: the "dropdown" -->
+    <!--
+      .blobselect-items: The styleable dropdown.
+    -->
     <div class="blobselect-items">
     
         <!--
-        .blobselect-item-search: only present if "search"=true
-        Note: this is a contenteditable <div>, not a true <input>
-        Note: type="text" is appended to help it inherit CSS [type="text"]
-        styles, but is otherwise functionless
+          .blobselect-item-search: A search field to filter
+          visible items. This is only present when the
+          option { search: true } is set.
+
+          Note: So as not to interfere with <form> data,
+          this is a contentEditable <div>. Of course it can
+          and/or should be styled to *look* like a regular
+          text <input>, but this way no data will be sent
+          back to the server. Neat, huh?
         -->
         <div class="blobselect-item-search" type="text" contenteditable="true"></div>
 
         <!--
-        .blobselect-item: an option
-        .is-active: if the option is selected
-        .is-placeholder: if the option is a placeholder
-        .is-disabled: if the option (or its optgroup parent) has the disabled attribute
-        .is-focused: if the option has focus via e.g. keyboard navigation
-        .has-group: if the option is part of an optgroup
-        .is-match: if "search"=true and this option matches the search
-        .is-not-match: if "search"=true and this option does not match the search
+          .blobselect-item: A single option.
+            
+            &.is-active: This option is selected.
+            
+            &.is-placeholder: This is just a placeholder.
+            
+            &.is-disabled: The <option> or its <optgroup>
+            are disabled.
+            
+            &.is-focused: The <option> has focus. This is
+            intended to aid with keyboard-based navigation.
+            
+            &.has-group: This <option> is part of an
+            <optgroup>.
+            
+            &.is-match: A search/filter matches this
+            <option>.
+            
+            &.is-not-match: A search/filter does not match
+            this <option>. Generally you would want to use
+            this to display:none unwanted items.
 
-        NOTE: a matched search substring will be wrapped in <mark> tags
-            e.g. Op<mark>tion</mark> Label
+          NOTE: When a search/filter is applied, partial
+          matches are wrapped in <mark> tags. You can style
+          that with e.g. .blobselect-item > mark { … }
         -->
         <div class="blobselect-item" data-value="option value" data-label="Option Label">Option Label</div>
         
         <!--
-        .blobselect-item-group: an optgroup
-        .is-disabled: if the optgroup has the disabled attribute
+          .blobselect-item-group: An <optgroup> label.
+          
+            &.is-disabled: The <optgroup> is disabled.
         -->
         <div class="blobselect-item-group">Fruit</div>
     </div>
 </div>
 ```
 
-The SCSS project folder includes example styles that might provide some inspiration.
+The SCSS source folder includes example styles that should provide a starting point and/or inspiration. :)
+
 
 
 &nbsp;
