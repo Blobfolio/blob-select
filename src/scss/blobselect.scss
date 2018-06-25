@@ -1,32 +1,68 @@
-//---------------------------------------------------------------------
-// blob-select
-//---------------------------------------------------------------------
-// https://blobfolio.com
-//
-// default styles
-
-
-//in this example CSS, we defer to the browser's
-//rendering of the dropdown menu itself on small
-//devices.  at 768+, we have enough space to
-//use our fake menu.
-$screen-tablet:	48em; //768px
-
-//some colors
-$color-blue: #3498db;
-$color-blue-dark: #2980b9;
-$color-purple: #8e44ad;
-$color-red: #c0392b;
-$color-white: #fff;
-$color-grey: #bdc3c7;
-$color-black: #2c3e50;
-
-//animations
-$transition-speed: .3s;
+/**
+ * Blob-select
+ *
+ * All the magic is controlled with CSS.
+ *
+ * This is an example configuration designed to help get you started.
+ * But of course, feel free to remove or change anything as desired.
+ *
+ * @version 2.1.0
+ * @author Blobfolio, LLC <hello@blobfolio.com>
+ * @package vue-blob-forms
+ * @license WTFPL <http://www.wtfpl.net>
+ *
+ * @see https://blobfolio.com
+ * @see https://github.com/Blobfolio/blob-select
+ */
 
 
 
-// The main blobselect container.
+// ---------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------
+
+// Basic font settings.
+$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Oxygen-Sans', Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+$font-size: 1rem;
+$font-weight: 400;
+$font-case: none;
+
+// Menu item font settings.
+$menu-family: $font-family;
+$menu-size: .8rem;
+$menu-weight: 400;
+$menu-case: uppercase;
+
+
+// Colors.
+$color-fg: #555;			// Field background.
+$color-bg: #fff;			// Field foreground.
+$color-inert: #ccc;			// Inert appearance states.
+$color-active: #555;		// Active appearance states.
+$color-highlight: #2980b9;	// Selected values, etc.
+$color-midlight: #3498db;	// Highlighted but unselected values, etc.
+$color-yikes: #c0392b;		// Warning color.
+$color-maybe: #ff1493;		// Search matching.
+
+// Basic dimensions.
+$width: 100%;
+$max-width: 300px;
+$height: 40px;				// Doesn't always apply for [multiple].
+
+// Transition speed.
+$speed: .3s;
+
+// Our styled pseudo-dropdown will only be used for screens at or above
+// this size.
+$accessible-breakpoint: 37.5em;
+
+
+
+// ---------------------------------------------------------------------
+// Main Field
+// ---------------------------------------------------------------------
+
+// This wraps around it all.
 .blobselect {
 	position: relative;
 
@@ -35,31 +71,46 @@ $transition-speed: .3s;
 	justify-content: flex-start;
 	flex-wrap: wrap;
 
-	padding: 10px;
-	width: 100%;
-	max-width: 300px;
+	width: $width;
+	max-width: $max-width;
+	min-height: $height;
 
-	border: 1px solid $color-grey;
-	background-color: $color-white;
-	cursor: pointer;
+	padding: 10px;
+
+	border: 1px solid $color-inert;
 	outline: none;
 
-	color: $color-black;
+	color: $color-fg;
+	background-color: $color-bg;
+
+	font-family: $font-family;
+	font-size: $font-size;
+	font-weight: $font-weight;
+	font-style: normal;
+	font-variant: normal;
+	text-transform: $font-case;
+	line-height: 1.25;
+	cursor: pointer;
 
 	transition:
-		background $transition-speed,
-		color $transition-speed,
-		border $transition-speed;
+		background $speed ease,
+		color $speed ease,
+		border $speed ease;
 
-	// A neat trick, for small screens we can preserve
-	// the browser's dropdown functionality, which is
-	// probably better than what we could do with CSS.
-	select {
+	// Just in case the other page styles use some older box-sizing
+	// method. We want to keep things simple. :)
+	&, * { box-sizing: border-box; }
+
+	// The real <select> lives inside our <blob-select>. To make
+	// selection easier for users with tiny devices, we'll pass clicks
+	// through to the true field so the browser's native interface can
+	// take over.
+	& > select {
 		position: absolute;
 		top: 0;
-		left: -5px;
 		right: -5px;
 		bottom: -5px;
+		left: -5px;
 		z-index: 1000;
 
 		width: calc(100% + 10px);
@@ -67,33 +118,83 @@ $transition-speed: .3s;
 
 		opacity: 0;
 
-		// For big screens, we don't really need this
-		// any more.
-		@media (min-width: $screen-tablet) { display: none; }
+		// We can hide it entirely at this point.
+		@media screen and (min-width: $accessible-breakpoint) {
+			display: none;
+		}
 	}
 
-	// Focus, hover, active.
+	// Warm it up.
 	&:focus,
 	&:active,
-	&:hover { border-color: $color-black; }
+	&:hover { border-color: $color-active; }
 
 	// Select is open.
 	&.is-open {
 		z-index: 1;
-		border-color: $color-blue-dark;
+		border-color: $color-highlight;
 	}
 
-	// Disabled styles.
+	// It is disabled.
 	&.is-disabled {
-		border-color: $color-grey!important;
-		color: $color-grey!important;
-		cursor: auto;
+		border-color: $color-inert!important;
+		color: $color-inert!important;
+		cursor: not-allowed;
+
+		& > * { pointer-events: none; }
 	}
-}//.blobselect
+}
+
+// A button-like structure.
+.blobselect-button {
+	position: relative;
+
+	width: 35px;
+	height: 30px;
+
+	cursor: pointer;
+	transition: all $speed ease;
+
+	// A little triangle.
+	&:after {
+		content: '';
+
+		position: absolute;
+		top: 50%;
+		left: 50%;
+
+		width: 0;
+		height: 0;
+		margin-top: -5px;
+		margin-left: -7.5px;
+
+		border-style: solid;
+		border-width: 10px 7.5px 0 7.5px;
+		border-color: $color-inert transparent transparent transparent;
+	}
+
+	// Warming up.
+	.blobselect:active &:after,
+	.blobselect:focus &:after,
+	.blobselect:hover &:after { border-color: $color-active transparent transparent transparent; }
+
+	// It's open.
+	.blobselect.is-open & {
+		transform: rotate(180deg);
+		&:after { border-color: $color-highlight transparent transparent transparent; }
+	}
+
+	// It's disabled.
+	.blobselect.is-disabled &:after { border-color: $color-inert transparent transparent transparent!important; }
+}
 
 
 
-// Our selections.
+// ---------------------------------------------------------------------
+// Selections
+// ---------------------------------------------------------------------
+
+// A container around the selection(s).
 .blobselect-selections {
 	display: flex;
 	align-items: flex-start;
@@ -101,8 +202,8 @@ $transition-speed: .3s;
 	flex-direction: column;
 
 	width: calc(100% - 35px);
-	overflow: hidden;
 
+	overflow: hidden;
 	word-wrap: break-word;
 }
 
@@ -110,184 +211,183 @@ $transition-speed: .3s;
 .blobselect-selection {
 	padding: 5px 0;
 
-	// The selection is a placeholder.
+	// Give placeholders a placeholdery look.
 	&.is-placeholder {
-		color: $color-grey;
 		font-style: italic;
+		color: $color-inert;
 	}
 
-	// The selection is part of a multiple,
-	// It needs an X.
-	.is-multiple & {
-		&:after {
-			margin-left: .25em;
-			opacity: 0;
-			color: $color-red;
-			content: '\00D7';
-			transition: opacity $transition-speed;
-		}
-		&:hover {
-			&:after { opacity: 1; }
+	pointer-events: none;
+
+	// A [multiselect] value can be unselected via click. Let's make
+	// more obvious with hover effects.
+	.is-multiple &:not(.is-placeholder) {
+		@media screen and (min-width: $accessible-breakpoint) {
+			position: relative;
+			pointer-events: auto;
+
+			&:after {
+				content: '';
+
+				position: absolute;
+				top: 50%;
+				left: 0;
+
+				width: 100%;
+				height: 2px;
+
+				background-color: rgba($color-yikes, .5);
+				opacity: 0;
+
+				transition: opacity $speed ease;
+			}
+
+			&:hover {
+				&:after { opacity: 1; }
+			}
 		}
 	}
 }
 
 
 
-// Our toggle button.
-.blobselect-button {
-	width: 35px;
-	height: 30px;
-	cursor: pointer;
-	transition: all $transition-speed;
-	position: relative;
+// ---------------------------------------------------------------------
+// The dropdown!
+// ---------------------------------------------------------------------
 
-	&:after {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-
-		margin-top: -5px;
-		margin-left: -7.5px;
-		width: 0;
-		height: 0;
-
-		border-style: solid;
-		border-width: 10px 7.5px 0 7.5px;
-		border-color: $color-grey transparent transparent transparent;
-
-		content: '';
-
-		transition: border $transition-speed;
-	}
-
-	.blobselect:active &:after,
-	.blobselect:focus &:after,
-	.blobselect:hover &:after {
-		border-color: $color-black transparent transparent transparent;
-	}
-
-	.blobselect.is-open & {
-		transform: rotate(180deg);
-		&:after { border-color: $color-blue-dark transparent transparent transparent; }
-	}
-
-	.is-disabled &:after { border-color: $color-grey transparent transparent transparent !important; }
-}
-
-
-
-// Our dropdown.
+// This wraps the menu items.
 .blobselect-items {
 	position: absolute;
 	top: 100%;
-	left: -1px;
 	right: -1px;
+	left: -1px;
 
+	// Remember for small screens we aren't using this at all.
 	display: none;
 
-	padding-bottom: 10px;
 	width: calc(100% + 2px);
+	max-height: 300px;
+	padding-bottom: 10px;
+	overflow-y: scroll;
 
-	border: 1px solid $color-grey;
+	border: 1px solid $color-inert;
 	border-top: 0;
-	background-color: $color-white;
 
-	color: $color-black;
+	background-color: $color-bg;
+	color: $color-fg;
+
+	font-family: $menu-family;
+	font-size: $menu-size;
+	font-weight: $menu-weight;
+	text-transform: $menu-case;
+	cursor: auto;
 
 	transform: scale(1, 0);
 	transform-origin: top center;
-	transition: background $transition-speed, color $transition-speed, transform $transition-speed;
+	transition:
+		background $speed ease,
+		color $speed ease,
+		transform $speed ease;
 
-	// We are only using our pseudo-dropdown on big screens.
-	@media(min-width: $screen-tablet){
-		.is-opening & { display: block; }
-		.is-open & {
+	// For the big leagues, make it work.
+	@media screen and (min-width: $accessible-breakpoint) {
+		.blobselect.is-opening & { display: block; }
+		.blobselect.is-open & {
 			display: block;
 			z-index: 1000;
-			border-color: $color-blue-dark;
+			border-color: $color-highlight;
 			transform: scale(1, 1);
 		}
 	}
 }
 
-// The search field.
+// The search field, if enabled, is the first thing under items.
 .blobselect-item-search {
 	display: flex;
 	align-items: center;
-	line-height: 35px;
 
+	height: 35px;
 	margin-bottom: 5px;
 	padding: 0 10px 0 35px;
-	height: 35px;
 
-	outline: none;
-	border-top: 1px dashed $color-blue-dark;
-	border-bottom: 1px dashed $color-blue-dark;
+	border-top: 1px dashed $color-highlight;
+	border-bottom: 1px dashed $color-highlight;
 	background: transparent url(../img/search.svg) scroll 10px 10px no-repeat;
 	background-size: 15px 15px;
+	outline: none;
+
+	line-height: 35px;
+	cursor: text;
+
 	opacity: .75;
 
-	font-size: .8rem;
-
-	transition: opacity $transition-speed;
+	transition: opacity $speed ease;
 
 	&:active,
 	&:focus,
-	&:hover {
-		opacity: 1;
-	}
+	&:hover { opacity: 1; }
 }
 
-// An optgroup label.
+// An <optgroup> label.
 .blobselect-item-group {
-	&:first-child {
-		border-top: 1px dashed $color-blue-dark;
-	}
-
 	padding: 10px;
+
 	outline: none;
-	font-size: .8rem;
+
 	font-weight: 700;
-	text-transform: uppercase;
+	letter-spacing: .1em;
+
+	pointer-events: none;
 
 	&.is-disabled { opacity: .5; }
+
+	// If there is no search, add a dashed border.
+	&:first-child { border-top: 1px dashed $color-highlight; }
 }
 
-// Dropdown items.
+// An <option> label.
 .blobselect-item {
-	&:first-child {
-		border-top: 1px dashed $color-blue-dark;
-	}
-
 	padding: 10px;
-	outline: none;
-	font-size: .8rem;
-	text-transform: uppercase;
-	transition: background $transition-speed, color $transition-speed;
 
+	outline: none;
+
+	cursor: pointer;
+
+	transition:
+		background $speed ease,
+		color $speed ease;
+
+	// This belongs to an <optgroup>.
 	&.has-group { padding-left: 30px; }
 
-	&.is-disabled { opacity: .5; }
-
-	&.is-not-match { display: none; }
+	&.is-disabled {
+		opacity: .5;
+		cursor: not-allowed;
+	}
 
 	&.is-placeholder { font-style: italic; }
 
-	mark {
-		border-bottom: 2px solid $color-purple;
-		background: transparent;
+	// This doesn't match the search filter.
+	&.is-not-match { display: none; }
+
+	// This is what matches the search.
+	& > mark {
+		border-bottom: 2px solid $color-maybe;
+		background-color: transparent;
 		color: inherit;
 	}
 
 	&:hover,
 	&.is-focused {
-		background-color: $color-blue;
-		color: $color-white;
+		background-color: $color-midlight;
+		color: $color-bg;
 	}
 
 	&.is-active {
-		background-color: $color-blue-dark;
-		color: $color-white;
+		background-color: $color-highlight;
+		color: $color-bg;
 	}
+
+	// If there is no search, add a dashed border.
+	&:first-child { border-top: 1px dashed $color-highlight; }
 }

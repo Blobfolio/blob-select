@@ -21,21 +21,12 @@ command -v stylecow >/dev/null 2>&1 || {
 
 
 # Compile the SCSS.
-declare -A SOURCES
-SOURCES["dist/css/blobselect.css"]="src/scss/blobselect.scss"
-SOURCES["dist/css/blobfolio.css"]="src/scss/blobfolio.scss"
-SOURCES["dist/css/reset.css"]="src/scss/reset.scss"
-
-# Now loop through and compile!
-for i in "${!SOURCES[@]}"
-do
-	echo -e "\033[2mcompiling:\033[0m $( basename "${SOURCES[$i]}" )"
-	sassc --style=compressed "${SOURCES[$i]}" "${i}"
-	if [ $? != 0 ]; then
-		notify-send -i error --category dev.validate -h int:transient:1 -t 3000 "SCSS: Error" "Your SCSS did not validate."
-		exit 1
-	fi
-done
+echo -e "\033[2mcompiling:\033[0m blobselect.scss )"
+sassc --style=compressed "src/scss/blobselect.scss" "dist/css/blobselect.css"
+if [ $? != 0 ]; then
+	notify-send -i error --category dev.validate -h int:transient:1 -t 3000 "SCSS: Error" "Your SCSS did not validate."
+	exit 1
+fi
 
 
 
