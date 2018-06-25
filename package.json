@@ -3,8 +3,8 @@
   "scripts": {
     "preinstall": "npm list onchange -g || npm install onchange -g",
     "watch": "npm run -s watch:css & npm run -s watch:js",
-    "watch:css": "onchange 'src/scss/**/*.scss' -- npm run -s css",
-    "watch:js": "onchange 'src/js/**/*.js' -- npm run -s js",
+    "watch:css": "onchange 'src/scss/**/*.scss' -w -- npm run -s css",
+    "watch:js": "onchange 'src/js/**/*.js' -w -- npm run -s js",
     "css": "npm run -s scss && npm run -s notify:css",
     "scss": "npm_scripts/css-scss.sh",
     "notify:css": "npm_scripts/notify-css.sh",
