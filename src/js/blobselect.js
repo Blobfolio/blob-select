@@ -986,14 +986,14 @@
 			else if (e.target.classList.contains('blobselect-item')) {
 				// Select it if it isn't disabled.
 				if (!e.target.classList.contains('is-disabled')) {
-					this.select(e.target);
+					this.select((e.target.tagName === "MARK" ? e.srcElement.parentNode : e.target));
 				}
 
 				return;
 			}
 
 			// Toggle container state.
-			if ('closed' === this.$me.state) {
+			if ('closed' === this.$me.state && e.target.tagName !== "MARK") {
 				return this.open();
 			}
 			else {
