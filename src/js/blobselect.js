@@ -992,6 +992,16 @@
 				return;
 			}
 
+			// A <mark> in an item.
+			else if (('MARK' === e.target.tagName) && e.target.parentNode.classList.contains('blobselect-item')) {
+				// Select it if it isn't disabled.
+				if (!e.target.parentNode.classList.contains('is-disabled')) {
+					this.select(e.target.parentNode);
+				}
+
+				return;
+			}
+
 			// Toggle container state.
 			if ('closed' === this.$me.state) {
 				return this.open();
