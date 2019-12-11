@@ -553,7 +553,8 @@
 			if (this.$me.disabled) {
 				this.container.classList.add('is-disabled');
 			}
-			this.container.tabIndex = this.$element.tabIndex || 0;
+			this.container.setAttribute('aria-haspopup', 'listbox');
+			this.container.tabIndex = 0;
 			this.$element.parentNode.insertBefore(this.container, this.$element);
 
 			// Selections wrapper.
@@ -567,11 +568,14 @@
 			// The dropdown button.
 			this.button = document.createElement('div');
 			this.button.classList.add('blobselect-button');
+			this.button.setAttribute('aria-hidden', true);
 			this.container.appendChild(this.button);
 
 			// The items wrapper.
 			this.items = document.createElement('div');
 			this.items.classList.add('blobselect-items');
+			this.items.setAttribute('role', 'listbox');
+			this.items.setAttribute('aria-hidden', true);
 			this.container.appendChild(this.items);
 
 			// The search field gets offloaded to its own area.
@@ -623,6 +627,9 @@
 				this.search.classList.add('blobselect-item-search');
 				this.search.setAttribute('type', 'text');
 				this.search.setAttribute('contentEditable', 'true');
+				this.search.setAttribute('role', 'textbox');
+				this.search.setAttribute('aria-multiline', false);
+				this.search.setAttribute('aria-label', 'Search');
 				this.search.tabIndex = 0;
 
 				// Where to put it?
@@ -713,6 +720,7 @@
 						++tabIndex;
 						tmp.tabIndex = tabIndex;
 						tmp.classList.add('blobselect-item');
+						tmp.setAttribute('role', 'listitem');
 						if (this.$items[i].placeholder) {
 							tmp.classList.add('is-placeholder');
 							tmp.textContent = this.$settings.placeholderOption;
@@ -725,11 +733,16 @@
 						}
 						if (this.$items[i].selected) {
 							tmp.classList.add('is-active');
+							tmp.setAttribute('aria-selected', true);
+						}
+						else {
+							tmp.setAttribute('aria-selected', false);
 						}
 					}
 
 					if (this.$items[i].disabled) {
 						tmp.classList.add('is-disabled');
+						tmp.setAttribute('aria-disabled', true);
 					}
 
 					tmp.setAttribute('data-type', this.$items[i].type);
@@ -756,10 +769,12 @@
 					newItems[i].addEventListener('focus', function(e) {
 						me.items.setAttribute('data-focused', _find(me.items, '.blobselect-item').indexOf(e.target));
 						e.target.classList.add('is-focused');
+						e.target.setAttribute('aria-activedescendant', true);
 					});
 
 					newItems[i].addEventListener('blur', function(e) {
 						e.target.classList.remove('is-focused');
+						e.target.setAttribute('aria-activedescendant', false);
 					});
 					/* jshint ignore:end */
 				}
@@ -787,6 +802,7 @@
 					// Disabled.
 					if (this.$items[key].disabled !== this.items.children[i].classList.contains('is-disabled')) {
 						this.items.children[i].classList.toggle('is-disabled', this.$items[key].disabled);
+						this.items.children[i].setAttribute('aria-disabled', this.$items[key].disabled);
 					}
 
 					// Grouped.
@@ -797,6 +813,7 @@
 					// Selected.
 					if (this.$items[key].selected !== this.items.children[i].classList.contains('is-active')) {
 						this.items.children[i].classList.toggle('is-active', this.$items[key].selected);
+						this.items.children[i].setAttribute('aria-selected', this.$items[key].selected);
 					}
 
 					// Label.
@@ -1156,6 +1173,7 @@
 				me.$me.state = 'open';
 				me.container.classList.add('is-open');
 				me.container.classList.remove('is-opening');
+				me.items.removeAttribute('aria-hidden');
 			}, 50);
 
 			// Jump to the search field.
@@ -1182,6 +1200,7 @@
 
 			this.container.classList.remove('is-open', 'is-opening');
 			this.items.setAttribute('data-focused', -1);
+			this.items.setAttribute('aria-hidden', true);
 			this.$me.state = 'closed';
 		},
 
