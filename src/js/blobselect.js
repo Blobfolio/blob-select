@@ -1,7 +1,7 @@
 /**
  * Blob-select
  *
- * @version 2.1.0
+ * @version 2.1.1
  * @author Blobfolio, LLC <hello@blobfolio.com>
  * @package vue-blob-forms
  * @license WTFPL <http://www.wtfpl.net>
