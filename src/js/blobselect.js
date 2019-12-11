@@ -1023,6 +1023,7 @@
 				8: 'backspace',
 				9: 'tab',
 				13: 'enter',
+				16: 'shift',
 				27: 'escape',
 				32: 'space',
 				37: 'left',
@@ -1036,7 +1037,7 @@
 			// A closed menu.
 			if ('closed' === this.$me.state) {
 				// Almost always we want to open the menu.
-				if (-1 === ['tab', 'backspace'].indexOf(keyMapped)) {
+				if (-1 === ['tab', 'backspace', 'shift'].indexOf(keyMapped)) {
 					e.stopPropagation();
 
 					// Close other instances, if any.
@@ -1083,13 +1084,19 @@
 				}
 			}
 
+			// Tab moves.
+			else if ('tab' === keyMapped) {
+				_closeOthers(this.$element);
+				return this.close();
+			}
+
 			// Navigation?
-			else if (-1 !== ['tab', 'up', 'down', 'left', 'right'].indexOf(keyMapped)) {
+			else if (-1 !== ['up', 'down', 'left', 'right'].indexOf(keyMapped)) {
 				e.stopPropagation();
 
 				// Maybe exit the search field.
 				if (e.target.classList.contains('blobselect-item-search')) {
-					if (-1 !== ['tab', 'up', 'down'].indexOf(keyMapped)) {
+					if (-1 !== ['up', 'down'].indexOf(keyMapped)) {
 						return this.traverseItems('current');
 					}
 
@@ -1097,7 +1104,7 @@
 				}
 
 				// Whereto?
-				const direction = -1 !== ['tab', 'down', 'right'].indexOf(keyMapped) ? 'next' : 'back';
+				const direction = -1 !== ['down', 'right'].indexOf(keyMapped) ? 'next' : 'back';
 				return this.traverseItems(direction);
 			}
 
